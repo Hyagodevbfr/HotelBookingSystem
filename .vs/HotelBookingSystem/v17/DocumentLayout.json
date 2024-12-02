@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|c:\\users\\hyago\\source\\repos\\hotelbookingsystem\\hotelbookingapi\\controllers\\rolecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|solutionrelative:hotelbookingapi\\controllers\\rolecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|c:\\users\\hyago\\source\\repos\\hotelbookingsystem\\hotelbookingapi\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|solutionrelative:hotelbookingapi\\controllers\\accountcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|c:\\users\\hyago\\source\\repos\\hotelbookingsystem\\hotelbookingapi\\services\\roleservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|solutionrelative:hotelbookingapi\\services\\roleservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|c:\\users\\hyago\\source\\repos\\hotelbookingsystem\\hotelbookingapi\\dtos\\serviceresultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{5E0BF069-846E-473D-82DF-B79B95055300}|HotelBookingAPI\\HotelBookingAPI.csproj|solutionrelative:hotelbookingapi\\dtos\\serviceresultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "HotelBookingAPI\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "HotelBookingAPI\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAABEAAAAAAAAAAAAUwCEAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-02T10:20:35.218Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RoleController.cs",
+              "DocumentMoniker": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Controllers\\RoleController.cs",
+              "RelativeDocumentMoniker": "HotelBookingAPI\\Controllers\\RoleController.cs",
+              "ToolTip": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Controllers\\RoleController.cs",
+              "RelativeToolTip": "HotelBookingAPI\\Controllers\\RoleController.cs",
+              "ViewState": "AgIAABgAAAAAAAAAAAAuwCEAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-02T10:10:48.355Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RoleService.cs",
+              "DocumentMoniker": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Services\\RoleService.cs",
+              "RelativeDocumentMoniker": "HotelBookingAPI\\Services\\RoleService.cs",
+              "ToolTip": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Services\\RoleService.cs",
+              "RelativeToolTip": "HotelBookingAPI\\Services\\RoleService.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAuwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-02T10:10:30.998Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ServiceResultDto.cs",
+              "DocumentMoniker": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Dtos\\ServiceResultDto.cs",
+              "RelativeDocumentMoniker": "HotelBookingAPI\\Dtos\\ServiceResultDto.cs",
+              "ToolTip": "C:\\Users\\hyago\\source\\repos\\HotelBookingSystem\\HotelBookingAPI\\Dtos\\ServiceResultDto.cs",
+              "RelativeToolTip": "HotelBookingAPI\\Dtos\\ServiceResultDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-02T09:18:10.479Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
