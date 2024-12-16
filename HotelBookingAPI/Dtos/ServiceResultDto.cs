@@ -31,7 +31,7 @@ public class ServiceResultDto<T>
         return new ServiceResultDto<T>
         {
             Success = false,
-            Message = message
+            Message = message,
         };
     }
 }

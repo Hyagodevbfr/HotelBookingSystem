@@ -21,7 +21,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 //Repositories
 builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IRole, RoleService>();
-builder.Services.AddScoped<IUserVerifierService, UserRoleVerifierService>();
+builder.Services.AddScoped<IUserVerifier, UserVerifierService>();
+builder.Services.AddScoped<IRoom, RoomService>();
 
 builder.Services.AddAutoMapper(typeof(UserProfile));
 
@@ -54,7 +55,11 @@ builder.Services.AddAuthentication(options =>
 
 
 
-builder.Services.AddControllers( );
+builder.Services.AddControllers( ).AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter( ));
+    options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer( );
 builder.Services.AddSwaggerGen(c =>

@@ -3,48 +3,35 @@ using HotelBookingAPI.Dtos;
 using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
-using System.Security.Claims;
 
 namespace HotelBookingAPI.Services;
 
-public class AccountService: IAccount
+public class AccountService : IAccount
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IMapper _mapper;
-    private readonly IUserVerifierService _userRoleVerifier;
+    private readonly IUserVerifier _userVerifier;
 
-    public AccountService(UserManager<AppUser> userManager,RoleManager<IdentityRole> roleManager,IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IUserVerifierService roleVerifier)
+    public AccountService(UserManager<AppUser> userManager,RoleManager<IdentityRole> roleManager,IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IUserVerifier roleVerifier)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
-        _userRoleVerifier = roleVerifier;
+        _userVerifier = roleVerifier;
     }
 
     public async Task<ServiceResultDto<UserDetailDto>> GetUserDetail(AppUser user)
     {
         var userDto = _mapper.Map<UserDetailDto>(user);
-        //var userDto = new UserDetailDto
-        //{
-        //    Id = user!.Id,
-        //    FirstName = user!.FirstName,
-        //    LastName = user.LastName,
-        //    Email = user.Email,
-        //    Roles = [.. await _userManager.GetRolesAsync(user)],
-        //    PhoneNumber = user.PhoneNumber,
-        //    TwoFactorEnabled = user.TwoFactorEnabled,
-        //    PhoneNumberConfirmed = user.PhoneNumberConfirmed,
-        //    AcessFailedCount = user.AccessFailedCount,
-        //};
         userDto.Roles = [.. await _userManager.GetRolesAsync(user)];
+        
 
         var userFinded = ServiceResultDto<UserDetailDto>.SuccessResult( userDto,"Usuário encontrado.");
        
@@ -82,14 +69,16 @@ public class AccountService: IAccount
 
     public async Task<ServiceResultDto<AppUser>> Register(UserRegisterDto userRegisterDto)
     {
-        var user = new AppUser
-        {
-            Email = userRegisterDto.EmailAddress,
-            FirstName = userRegisterDto.FirstName,
-            LastName = userRegisterDto.LastName,
-            UserName = userRegisterDto.EmailAddress,
-            
-        };
+        var validationResult = _userVerifier.ValidateUser(userRegisterDto);
+        if(!validationResult.Success)
+            return validationResult;
+
+        var isDuplicateUser = await _userVerifier.IsDuplicateUser(userRegisterDto);
+
+        if(!isDuplicateUser.Success)
+            return ServiceResultDto<AppUser>.Fail("Documento duplicado.", new List<string> { isDuplicateUser.Message });
+
+        var user = _mapper.Map<AppUser>(userRegisterDto);
 
         var result = await _userManager.CreateAsync(user, userRegisterDto.Password);
         var errors = result.Errors.Select(err => err.Description);
@@ -97,7 +86,7 @@ public class AccountService: IAccount
         if (!result.Succeeded)       
             return ServiceResultDto<AppUser>.Fail("Falha ao registrar usuário", errors);
 
-        if (userRegisterDto.Roles is null)
+        if (userRegisterDto.Roles is null || !userRegisterDto.Roles.Any())
         {
             await _userManager.AddToRoleAsync(user,"User");
         }
@@ -110,5 +99,41 @@ public class AccountService: IAccount
         }
 
         return ServiceResultDto<AppUser>.SuccessResult(user,"Usuário criado com sucesso");
+    }
+
+    public async Task<ServiceResultDto<AppUser>> UpdateUser(string id, UpdateUserDto updateUserDto)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if(user == null)
+            return ServiceResultDto<AppUser>.Fail("Usuário não encontrado.");
+
+        var validationResult = _userVerifier.ValidateUser(updateUserDto);
+        if(!validationResult.Success)
+            return validationResult;
+
+        if(user.NationalId != updateUserDto.NationalId || user.RegistrationId != updateUserDto.RegistrationId)
+        {
+            var isDuplicateUser = await _userVerifier.IsDuplicateUser(updateUserDto);
+
+            if(!isDuplicateUser.Success)
+                return ServiceResultDto<AppUser>.Fail("Documento duplicado.", new[] { isDuplicateUser.Message });
+        }
+        else
+        {
+            updateUserDto.NationalId = user.NationalId;
+            updateUserDto.RegistrationId = user.RegistrationId;
+        }
+
+        var userUpdated = _mapper.Map(updateUserDto, user);
+        userUpdated.EditedBy = user.Id;
+        
+
+        var result = await _userManager.UpdateAsync(user);
+        var errors = result.Errors.Select(err => err.Description);
+
+        if(!result.Succeeded)
+            return ServiceResultDto<AppUser>.Fail("Falha ao editar usuário",errors);
+
+        return ServiceResultDto<AppUser>.SuccessResult(user,"Usuário editado com sucesso.");
     }
 }

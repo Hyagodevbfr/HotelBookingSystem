@@ -9,6 +9,8 @@
       "HotelBookingAPI/1.0.0": {
         "dependencies": {
           "AutoMapper": "13.0.1",
+          "Flunt": "2.0.5",
+          "Flunt.Br": "2.0.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "8.0.0",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.0",
           "Microsoft.EntityFrameworkCore": "8.0.0",
@@ -62,6 +64,25 @@
           "lib/netstandard2.0/Azure.Identity.dll": {
             "assemblyVersion": "1.7.0.0",
             "fileVersion": "1.700.22.46903"
+          }
+        }
+      },
+      "Flunt/2.0.5": {
+        "runtime": {
+          "lib/netstandard2.0/Flunt.dll": {
+            "assemblyVersion": "2.0.5.0",
+            "fileVersion": "2.0.5.0"
+          }
+        }
+      },
+      "Flunt.Br/2.0.0": {
+        "dependencies": {
+          "Flunt": "2.0.5"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Flunt.Br.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
           }
         }
       },
@@ -957,6 +978,20 @@
       "sha512": "sha512-eHEiCO/8+MfNc9nH5dVew/+FvxdaGrkRL4OMNwIz0W79+wtJyEoeRlXJ3SrXhoy9XR58geBYKmzMR83VO7bcAw==",
       "path": "azure.identity/1.7.0",
       "hashPath": "azure.identity.1.7.0.nupkg.sha512"
+    },
+    "Flunt/2.0.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CMgq8FUYjkHzyZT3PhkUwZyy79mudON+EL4b0SAT7BfIOJ2CNypwnbdA0cPHAM2CYQfO2L8ubNJCiBHQOIv2pA==",
+      "path": "flunt/2.0.5",
+      "hashPath": "flunt.2.0.5.nupkg.sha512"
+    },
+    "Flunt.Br/2.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OdURuAJ00wbtbRFbg32hJSx3ZENibuwQ7ayTzaI/oeMWtTQBjr3zhfb/bSipPDsIIK/sMoxdbmZzh3j7bcGyjQ==",
+      "path": "flunt.br/2.0.0",
+      "hashPath": "flunt.br.2.0.0.nupkg.sha512"
     },
     "Humanizer.Core/2.14.1": {
       "type": "package",

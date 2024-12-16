@@ -13,4 +13,8 @@ public class UserDetailDto
     public bool TwoFactorEnabled { get; set; }
     public bool PhoneNumberConfirmed { get; set; }
     public int AcessFailedCount { get; set; }
+    public bool IsActive { get; set; }
+    public string? NationalId { get; set; }
+    public string? RegistrationId { get; set; }
+    public DateTime BirthDate { get; set; }
 }

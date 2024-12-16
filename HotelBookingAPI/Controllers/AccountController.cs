@@ -13,7 +13,7 @@ using System.Text;
 
 namespace HotelBookingAPI.Controllers;
 
-[Authorize(Roles = "Admin, Employee")]
+[Authorize]
 public class AccountController: Controller
 {
     private readonly UserManager<AppUser> _userManager;
@@ -21,7 +21,7 @@ public class AccountController: Controller
     private readonly IConfiguration _configuration;
     private readonly IAccount _account;
     private readonly IMapper _mapper;
-    private readonly IUserVerifierService _userRoleVerifier;
+    private readonly IUserVerifier _userRoleVerifier;
 
     public AccountController
         (
@@ -30,7 +30,7 @@ public class AccountController: Controller
         IConfiguration configuration,
         UserManager<AppUser> userManager,
         RoleManager<IdentityRole> roleManager,
-        IUserVerifierService userRoleVerifier
+        IUserVerifier userRoleVerifier
         )
     {
         _userManager = userManager;
@@ -49,7 +49,7 @@ public class AccountController: Controller
         var result = await _account.Register(userRegister);
 
         if(!result.Success)
-            return BadRequest(new { result.Message,result.Errors });
+            return BadRequest(new { result.Message, result.Errors });
 
         return Ok( new {result.Message, Sucess = result.Success });
         
@@ -90,6 +90,23 @@ public class AccountController: Controller
         return Ok(result);
     }
 
+    [Authorize(Roles = "Admin, Employee")]
+    [HttpPatch("update/{id}")]
+    public async Task<ActionResult<ServiceResultDto<UpdateUserDto>>> UpdateUser(string id,[FromBody] UpdateUserDto updateUser)
+    {
+        if(!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        //var user = await _userManager.FindByIdAsync(id);
+        //if(user is null)
+        //    return NotFound(ServiceResultDto<UserDetailDto>.Fail("Usuário não encontrado."));
+
+        var result = await _account.UpdateUser(id, updateUser);
+        return Ok(result);
+
+    }
+
+    [Authorize(Roles = "Admin, Employee")]
     [HttpGet("users")]
     public async Task<ActionResult<ServiceResultDto<IEnumerable<UserDetailDto>>>> GetUsers()
     {

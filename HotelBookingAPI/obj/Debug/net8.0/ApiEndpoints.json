@@ -98,6 +98,109 @@
     ]
   },
   {
+    "ContainingType": "HotelBookingAPI.Controllers.RoomController",
+    "Method": "CreateRoom",
+    "RelativePath": "api/Room",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "roomDto",
+        "Type": "HotelBookingAPI.Dtos.RoomDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "HotelBookingAPI.Dtos.ServiceResultDto\u00601[[HotelBookingAPI.Dtos.RoomDto, HotelBookingAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "HotelBookingAPI.Controllers.RoomController",
+    "Method": "GetDetail",
+    "RelativePath": "api/Room/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "HotelBookingAPI.Dtos.ServiceResultDto\u00601[[HotelBookingAPI.Dtos.RoomDetailDto, HotelBookingAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "HotelBookingAPI.Controllers.RoomController",
+    "Method": "EditRoom",
+    "RelativePath": "api/Room/{id}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "roomDto",
+        "Type": "HotelBookingAPI.Dtos.RoomDto",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "HotelBookingAPI.Dtos.ServiceResultDto\u00601[[HotelBookingAPI.Dtos.RoomDto, HotelBookingAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "HotelBookingAPI.Controllers.RoomController",
+    "Method": "GetRooms",
+    "RelativePath": "api/Room/rooms",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "HotelBookingAPI.Dtos.ServiceResultDto\u00601[[System.Collections.Generic.IEnumerable\u00601[[HotelBookingAPI.Dtos.RoomDetailDto, HotelBookingAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
     "ContainingType": "HotelBookingAPI.Controllers.AccountController",
     "Method": "GetUserDetail",
     "RelativePath": "detail",
@@ -148,6 +251,37 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "HotelBookingAPI.Controllers.AccountController",
+    "Method": "UpdateUser",
+    "RelativePath": "update/{id}",
+    "HttpMethod": "PATCH",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "updateUser",
+        "Type": "HotelBookingAPI.Dtos.UpdateUserDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "HotelBookingAPI.Dtos.ServiceResultDto\u00601[[HotelBookingAPI.Dtos.UpdateUserDto, HotelBookingAPI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
   },
   {
     "ContainingType": "HotelBookingAPI.Controllers.AccountController",

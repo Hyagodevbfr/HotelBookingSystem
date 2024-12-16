@@ -10,5 +10,6 @@ public interface IAccount
     Task<ServiceResultDto<AppUser>> Login(UserLoginDto userLoginDto);
     Task<ServiceResultDto<UserDetailDto>> GetUserDetail(AppUser user);
     Task<ServiceResultDto<IEnumerable<UserDetailDto>>> GetUsers();
+    Task<ServiceResultDto<AppUser>> UpdateUser(string id, UpdateUserDto updateUserDto);
 
 }

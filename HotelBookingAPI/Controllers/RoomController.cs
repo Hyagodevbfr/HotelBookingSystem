@@ -3,7 +3,6 @@ using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
 using HotelBookingAPI.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -12,64 +11,71 @@ namespace HotelBookingAPI.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize(Roles = "Admin, Employee")]
-public class RoleController: ControllerBase
+public class RoomController: ControllerBase
 {
-    private readonly IUserVerifier _userRoleVerifier;
-    private readonly IRole _roleService;
+    private readonly IRoom _roomService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IUserVerifier _userRoleVerifier;
 
-    public RoleController
-        (
-        IRole roleService,
-        UserManager<AppUser> userManager,
-        IUserVerifier userRoleVerifier
-        )
+    public RoomController(IRoom roomService,UserManager<AppUser> userManager,IUserVerifier userRoleVerifier)
     {
-        _userRoleVerifier = userRoleVerifier;
-        _roleService = roleService;
+        _roomService = roomService;
         _userManager = userManager;
+        _userRoleVerifier = userRoleVerifier;
     }
-    [HttpPost("create")]
-    public async Task<ActionResult<ServiceResultDto<CreateRoleDto>>> CreateRole([FromBody] CreateRoleDto roleDto)
+    [HttpPost]
+    public async Task<ActionResult<ServiceResultDto<RoomDto>>> CreateRoom([FromBody] RoomDto roomDto)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userRoleVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var result = await _roleService.CreateRole(roleDto);
+        var result = await _roomService.CreateRoom(roomDto,currentUserId!);
+
         if(!result.Success)
-            return BadRequest(new { result.Message,result.Errors });
+            return BadRequest(result);
 
-        return Ok(new { result.Message,Sucess = result.Success });
+        return Ok(ServiceResultDto<RoomDto>.SuccessResult(roomDto,"Quarto criado com sucesso."));
     }
-    [HttpGet("roles")]
-    public async Task<ActionResult<ServiceResultDto<IEnumerable<RoleResponseDto>>>> GetRoles()
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ServiceResultDto<RoomDetailDto>>> GetDetail(int id)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userRoleVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var result = await _roleService.GetRoles( );
-        return Ok(result);
+        var result = await _roomService.GetRoom(id);
+        if(!result.Success)
+            return BadRequest(result);
+        
+        return Ok(ServiceResultDto<RoomDetailDto>.SuccessResult(result.Data,"Quarto encontrado."));
     }
-    [HttpGet("delete/{roleId}")]
-    public async Task<ActionResult<ServiceResultDto<IdentityRole>>> DeleteRole(string roleId)
+    [HttpGet("rooms")]
+    public async Task<ActionResult<ServiceResultDto<IEnumerable<RoomDetailDto>>>> GetRooms()
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userRoleVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var result = await _roleService.DeleteRole(roleId);
-        return Ok(result);
+        var result = await _roomService.GetAllRooms();
+        if(!result.Success)
+            return BadRequest(result);
+
+        return Ok((result));
     }
-    [HttpPut("assign")]
-    public async Task<ActionResult<ServiceResultDto<IdentityRole>>> AssignRole([FromBody] AssignRoleDto assignRole)
+
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<ServiceResultDto<RoomDto>>> EditRoom([FromBody] RoomDto roomDto, int id)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userRoleVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var result = await _roleService.AssignRole(assignRole);
-        return Ok(result);
+        var result = await _roomService.EditRoom(roomDto,currentUserId!,id);
+        if(!result.Success)
+            return BadRequest(result);
+
+        return Ok(ServiceResultDto<RoomDto>.SuccessResult(roomDto,"Quarto editado com sucesso."));
     }
 }

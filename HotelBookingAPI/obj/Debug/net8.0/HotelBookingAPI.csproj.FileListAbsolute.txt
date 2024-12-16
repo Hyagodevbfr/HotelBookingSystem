@@ -137,3 +137,6 @@ C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\obj\Debug\net8.0\
 C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\obj\Debug\net8.0\HotelBookingAPI.genruntimeconfig.cache
 C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\obj\Debug\net8.0\ref\HotelBookingAPI.dll
 C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\obj\Debug\net8.0\HotelBookingAPI.sourcelink.json
+C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\bin\Debug\net8.0\Flunt.dll
+C:\Users\hyago\source\repos\HotelBookingSystem\HotelBookingAPI\bin\Debug\net8.0\Flunt.Br.dll
