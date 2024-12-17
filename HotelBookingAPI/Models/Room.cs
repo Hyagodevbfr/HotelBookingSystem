@@ -19,7 +19,10 @@ public class Room : Entity
     public bool HasWiFi { get; set; } = false; // Indica se o quarto tem Wi-Fi
     public bool HasTV { get; set; } = false; // Indica se o quarto possui TV
     public bool IsAccessible { get; set; } = false; // Indica se o quarto é acessível (ex: PCD)
-    public List<string>? Amenities { get; set; } = new( );// Lista de comodidades adicionais (ex: cofre, frigobar)
+    public List<string>? Amenities { get; set; } = [];// Lista de comodidades adicionais (ex: cofre, frigobar)
+
+    public List<Booking> Bookings { get; set; } = [];
+
     public Room(){}
     public Room(RoomDto roomDto)
     {
