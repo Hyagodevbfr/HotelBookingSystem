@@ -46,5 +46,9 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .HasOne(b => b.Room)
             .WithMany(r => r.Bookings)
             .HasForeignKey(b => b.RoomId);
+
+        builder.Entity<Booking>( )
+            .Property(b => b.TotalPrice)
+            .HasColumnType("decimal(18,2)");
     }
 }
