@@ -17,14 +17,14 @@ public class AccountService : IAccount
     private readonly IMapper _mapper;
     private readonly IUserVerifier _userVerifier;
 
-    public AccountService(UserManager<AppUser> userManager,RoleManager<IdentityRole> roleManager,IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IUserVerifier roleVerifier)
+    public AccountService(UserManager<AppUser> userManager,RoleManager<IdentityRole> roleManager,IConfiguration configuration, IHttpContextAccessor httpContextAccessor, IMapper mapper, IUserVerifier userVerifier)
     {
         _userManager = userManager;
         _roleManager = roleManager;
         _configuration = configuration;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
-        _userVerifier = roleVerifier;
+        _userVerifier = userVerifier;
     }
 
     public async Task<ServiceResultDto<UserDetailDto>> GetUserDetail(AppUser user)
