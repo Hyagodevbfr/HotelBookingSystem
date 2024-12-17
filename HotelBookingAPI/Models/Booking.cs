@@ -7,7 +7,7 @@ public class Booking
     public Guid Id { get; set; }
     public Guid TravelerId { get; set; }
     public Traveler Traveler { get; set; } = null!;
-    public Guid RoomId { get; set; }
+    public int RoomId { get; set; }
     public Room Room { get; set; } = null!;
     public DateTime CheckInDate { get; set; }
     public DateTime CheckOutDate { get; set; }
