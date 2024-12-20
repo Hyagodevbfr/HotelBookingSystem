@@ -162,11 +162,11 @@ namespace HotelBookingAPI.Migrations
                     b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("TravelerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TravelerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("TravelerUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -174,6 +174,8 @@ namespace HotelBookingAPI.Migrations
                     b.HasIndex("BookingHistoryId");
 
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("TravelerId");
 
                     b.HasIndex("TravelerUserId");
 
@@ -290,8 +292,21 @@ namespace HotelBookingAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("DietaryPreferences")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("EmergencyContact")
                         .IsRequired()
@@ -469,10 +484,14 @@ namespace HotelBookingAPI.Migrations
                         .IsRequired();
 
                     b.HasOne("HotelBookingAPI.Models.Traveler", "Traveler")
-                        .WithMany("Bookings")
-                        .HasForeignKey("TravelerUserId")
+                        .WithMany()
+                        .HasForeignKey("TravelerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("HotelBookingAPI.Models.Traveler", null)
+                        .WithMany("Bookings")
+                        .HasForeignKey("TravelerUserId");
 
                     b.Navigation("Room");
 
