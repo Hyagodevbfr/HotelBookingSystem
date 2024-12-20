@@ -50,5 +50,10 @@ public class AppDbContext : IdentityDbContext<AppUser>
         builder.Entity<Booking>( )
             .Property(b => b.TotalPrice)
             .HasColumnType("decimal(18,2)");
+
+        builder.Entity<Booking>( )
+            .HasOne(b => b.Traveler)
+            .WithMany( )
+            .HasForeignKey(b => b.TravelerId);
     }
 }
