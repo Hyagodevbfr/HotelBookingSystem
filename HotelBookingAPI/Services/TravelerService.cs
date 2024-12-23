@@ -8,10 +8,12 @@ namespace HotelBookingAPI.Services;
 public class TravelerService: ITraveler
 {
     private readonly AppDbContext _dbContext;
+    private readonly ITravelerVerifier _travelerVerifier;
 
-    public TravelerService(AppDbContext dbContext)
+    public TravelerService(AppDbContext dbContext, ITravelerVerifier travelerVerifier)
     {
         _dbContext = dbContext;
+        _travelerVerifier = travelerVerifier;
     }
     public async Task<ServiceResultDto<CreateTravelerDto>> CreateTraveler(CreateTravelerDto createTravelerDto, string userId)
     {
@@ -20,9 +22,13 @@ public class TravelerService: ITraveler
         traveler.CreatedBy = userId;
         traveler.CreatedOn = DateTime.Now;
 
+        var isDuplicatedTraveler = await _travelerVerifier.IsDuplicateTraveler(createTravelerDto, userId);
+        if(!isDuplicatedTraveler.Success)
+            return ServiceResultDto<CreateTravelerDto>.Fail("Não foi possível cadastrar o viajante.", [isDuplicatedTraveler.Message]);
+
         if(!traveler.IsValid)
         {
-            var result = ServiceResultDto<CreateTravelerDto>.Fail("Não foi possível criar o viajante",traveler.Notifications.Select(n => n.Message));
+            var result = ServiceResultDto<CreateTravelerDto>.Fail("Não foi possível cadastrar o viajante",traveler.Notifications.Select(n => n.Message));
             return result;
         }
 
