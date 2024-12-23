@@ -23,7 +23,6 @@ builder.Services.AddScoped<IAccount, AccountService>();
 builder.Services.AddScoped<IRole, RoleService>();
 builder.Services.AddScoped<IUserVerifier, UserVerifierService>();
 builder.Services.AddScoped<IRoom, RoomService>();
-builder.Services.AddScoped<IBooking, BookingService>();
 builder.Services.AddScoped<ITraveler, TravelerService>();
 builder.Services.AddScoped<ITravelerVerifier, TravelerVerifierService>();
 
