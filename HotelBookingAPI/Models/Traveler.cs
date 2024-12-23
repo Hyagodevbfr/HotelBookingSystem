@@ -69,7 +69,7 @@ public class Traveler : Notifiable<Notification>
             .IsBetween(State!.Length,2,23,"Estado deve conter entre 5 a 100 caracteres")
 
             .IsNotNullOrWhiteSpace(EmergencyContact,"EmergencyContact","Campo contato de emegência não pode ser vazio")
-            .IsBetween(City!.Length,9,17,"Cidade deve conter entre 9 a 17 caracteres")
+            .IsBetween(City!.Length,3,17,"Cidade deve conter entre 3 a 17 caracteres")
 
             .IsNotNullOrWhiteSpace(EmergencyContactName,"EmergencyContactName","Campo Nome do contato de emergência não pode ser vazio")
             .IsBetween(City!.Length,5,100,"Cidade deve conter entre 5 a 35 caracteres")
