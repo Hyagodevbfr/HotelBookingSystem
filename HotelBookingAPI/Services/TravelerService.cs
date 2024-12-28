@@ -44,8 +44,18 @@ public class TravelerService: ITraveler
         return await Task.FromResult(successResult);
     }
 
-    public async Task<ServiceResultDto<UpdateTravelerDto>> UpdateTraveler(UpdateTravelerDto updateTravelerDto, string userId)
+    public async Task<ServiceResultDto<UpdateTravelerDto>> UpdateTraveler(UpdateTravelerDto updateTravelerDto, string userId, string authenticatedUser)
     {
+        var userWithPermission = false;
+        if(authenticatedUser != userId)
+        {
+            var locateAuthenticatedUser = await _userManager.FindByIdAsync(authenticatedUser);
+            var roles= await _userManager.GetRolesAsync(locateAuthenticatedUser!);
+            if(!roles.Contains("Admin"))
+                return ServiceResultDto<UpdateTravelerDto>.Fail("Esse usuário não tem permissão para editar o viajante");
+
+            userWithPermission = true;
+        }
         //var user = await _userManager.FindByIdAsync(userId);
         Traveler? traveler = await _dbContext.Travelers!.Where(u => u.UserId == userId).FirstOrDefaultAsync( );
         if(traveler is null)
@@ -53,7 +63,7 @@ public class TravelerService: ITraveler
             var result = ServiceResultDto<UpdateTravelerDto>.NullContent("Viajante não localizado.");
             return result;
         }
-
+        
         traveler.EditTraveler(updateTravelerDto);
 
         if(!traveler.IsValid)
@@ -61,12 +71,13 @@ public class TravelerService: ITraveler
             var result = ServiceResultDto<UpdateTravelerDto>.Fail("Não foi possível editar as informações do viajante.", traveler.Notifications.Select(n => n.Message));
             return result;
         }
-        traveler.EditedBy = userId;
+
+        traveler.EditedBy = userWithPermission ? authenticatedUser : userId;
         traveler.EditedOn = DateTime.Now;
 
         await _dbContext.SaveChangesAsync();
         var successResult = ServiceResultDto<UpdateTravelerDto>.SuccessResult(updateTravelerDto,"Viajante editado com sucesso.");
 
         return successResult;
-    }
+     }
 }
