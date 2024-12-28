@@ -3,6 +3,7 @@ using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using System.Security.Claims;
 
 namespace HotelBookingAPI.Controllers;
@@ -33,5 +34,15 @@ public class TravelerController: ControllerBase
             return BadRequest(new { result.Message,result.Errors });
 
         return Ok(new { result.Message,Sucess = result.Success });
+    }
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<ServiceResultDto<UpdateTravelerDto>>> UpdateTraveler([FromBody] UpdateTravelerDto updateTravelerDto, string id) 
+    {
+        var result = await _travelerService.UpdateTraveler(updateTravelerDto, id);
+        if(!result.Success)
+            return BadRequest(new { result.Message,result.Errors });
+
+        return Ok(ServiceResultDto<UpdateTravelerDto>.SuccessResult(updateTravelerDto, "Viajante cadastrado com sucesso."));
+
     }
 }
