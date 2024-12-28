@@ -38,9 +38,13 @@ public class TravelerController: ControllerBase
     [HttpPatch("{id}")]
     public async Task<ActionResult<ServiceResultDto<UpdateTravelerDto>>> UpdateTraveler([FromBody] UpdateTravelerDto updateTravelerDto, string id) 
     {
-        var result = await _travelerService.UpdateTraveler(updateTravelerDto, id);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(string.IsNullOrEmpty(currentUserId))
+            return Unauthorized(ServiceResultDto<UpdateTravelerDto>.Fail("Usuário não autenticado."));
+
+        var result = await _travelerService.UpdateTraveler(updateTravelerDto, id, currentUserId);
         if(!result.Success)
-            return BadRequest(new { result.Message,result.Errors });
+            return BadRequest(new { result.Message, result.Errors });
 
         return Ok(ServiceResultDto<UpdateTravelerDto>.SuccessResult(updateTravelerDto, "Viajante cadastrado com sucesso."));
 
