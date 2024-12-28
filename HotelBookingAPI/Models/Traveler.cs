@@ -52,6 +52,21 @@ public class Traveler : Notifiable<Notification>
 
         Validate( );
     }
+    public void EditTraveler(UpdateTravelerDto updateTraveler)
+    {
+        Address = updateTraveler.Address;
+        City = updateTraveler.City;
+        PostalCode = updateTraveler.PostalCode;
+        Country = updateTraveler.Country;
+        State = updateTraveler.State;
+        EmergencyContact = updateTraveler.EmergencyContact;
+        EmergencyContactName = updateTraveler.EmergencyContactName;
+        HasSpecialNeeds = updateTraveler.HasSpecialNeeds;
+        SpecialNeedsDetails = updateTraveler.SpecialNeedsDetails;
+        DietaryPreferences = updateTraveler.DietaryPreferences;
+
+        Validate( );
+    }
     private void Validate()
     {
         AddNotifications(new Contract( )
