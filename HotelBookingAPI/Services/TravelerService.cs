@@ -47,6 +47,45 @@ public class TravelerService: ITraveler
         return await Task.FromResult(successResult);
     }
 
+    public async Task<ServiceResultDto<TravelerDetailDto>> GetTravelerDetail(string travelerId)
+    {
+        var travelerResult = (
+                                from userDb in _userManager.Users
+                                join travelerDb in _dbContext.Travelers! on userDb.Id equals travelerDb.UserId
+                                where travelerDb.UserId == travelerId
+                                select new TravelerDetailDto
+                                {
+                                    UserId = userDb.Id,
+                                    FirstName = userDb.FirstName,
+                                    LastName = userDb.LastName,
+                                    Email = userDb.Email,
+                                    PhoneNumber = userDb.PhoneNumber,
+                                    BirthDate = userDb.BirthDate.ToString( ),
+                                    IsActive = userDb.IsActive,
+                                    NationalId = userDb.NationalId,
+                                    RegistrationId = userDb.RegistrationId,
+                                    Address = travelerDb.Address,
+                                    City = travelerDb.City,
+                                    State = travelerDb.State,
+                                    PostalCode = travelerDb.PostalCode,
+                                    Country = travelerDb.Country,
+                                    EmergencyContact = travelerDb.EmergencyContact,
+                                    EmergencyContactName = travelerDb.EmergencyContactName,
+                                    HasEspecialNeeds = travelerDb.HasSpecialNeeds,
+                                    SpecialNeedsDetails = travelerDb.SpecialNeedsDetails,
+                                    DietaryPreferences = travelerDb.DietaryPreferences,
+                                    CreatedOn = userDb.CreatedOn.ToString( ),
+                                    EditedBy = userDb.EditedBy,
+                                    EditedOn = userDb.EditedOn.ToString( ),
+                                }
+                             ).FirstOrDefaultAsync();
+
+        if(travelerResult != null)
+            return ServiceResultDto<TravelerDetailDto>.SuccessResult(await travelerResult,"Viajante localizado.");
+        
+        return ServiceResultDto<TravelerDetailDto>.Fail("Viajante não localizado.");
+    }
+
     public async Task<ServiceResultDto<List<TravelerDetailDto>>> GetTravelers()
     {
         var travelerList = await _dbContext.Travelers!.ToListAsync( );
@@ -86,16 +125,10 @@ public class TravelerService: ITraveler
 
     public async Task<ServiceResultDto<UpdateTravelerDto>> UpdateTraveler(UpdateTravelerDto updateTravelerDto, string userId, string authenticatedUser)
     {
-        var userWithPermission = false;
-        if(authenticatedUser != userId)
-        {
-            var locateAuthenticatedUser = await _userManager.FindByIdAsync(authenticatedUser);
-            var roles= await _userManager.GetRolesAsync(locateAuthenticatedUser!);
-            if(!roles.Contains("Admin"))
-                return ServiceResultDto<UpdateTravelerDto>.Fail("Esse usuário não tem permissão para editar o viajante");
+        var userWithPermission = await CheckUserAuthenticated(authenticatedUser, userId);
+        if(!userWithPermission)
+            return ServiceResultDto<UpdateTravelerDto>.Fail("Esse usuário não tem permissão para editar o viajante");
 
-            userWithPermission = true;
-        }
         Traveler? traveler = await _dbContext.Travelers!.Where(u => u.UserId == userId).FirstOrDefaultAsync( );
         if(traveler is null)
         {
@@ -111,7 +144,7 @@ public class TravelerService: ITraveler
             return result;
         }
 
-        traveler.EditedBy = userWithPermission ? authenticatedUser : userId;
+        traveler.EditedBy = authenticatedUser;
         traveler.EditedOn = DateTime.Now;
 
         await _dbContext.SaveChangesAsync();
@@ -119,4 +152,16 @@ public class TravelerService: ITraveler
 
         return successResult;
      }
+
+    public async Task<bool> CheckUserAuthenticated(string authenticatedUser, string userId)
+    {
+        if(authenticatedUser != userId)
+        {
+            var locateAuthenticatedUser = await _userManager.FindByIdAsync(authenticatedUser);
+            var roles = await _userManager.GetRolesAsync(locateAuthenticatedUser!);
+            if(!roles.Contains("Admin"))
+                return false;
+        }
+        return true;
+    }
 }
