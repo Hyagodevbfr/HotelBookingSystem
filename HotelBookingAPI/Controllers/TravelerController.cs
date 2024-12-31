@@ -1,5 +1,7 @@
 ﻿using HotelBookingAPI.Dtos;
+using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
+using HotelBookingAPI.Models;
 using HotelBookingAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +16,13 @@ public class TravelerController: ControllerBase
 {
     private readonly ITraveler _travelerService;
     private readonly IUserVerifier _userVerifier;
+    private readonly AppDbContext _appDb;
 
-    public TravelerController(ITraveler travelerService, IUserVerifier userVerifier)
+    public TravelerController(ITraveler travelerService, IUserVerifier userVerifier, AppDbContext appDb)
     {
         _travelerService = travelerService;
         _userVerifier = userVerifier;
+        _appDb = appDb;
     }
     [Authorize(Roles = "Admin, Employee")]
     [HttpPost]
@@ -48,6 +52,17 @@ public class TravelerController: ControllerBase
 
         var result = await _travelerService.GetTravelers();
         return Ok(result);
+    }
+    [HttpGet("detail")]
+    public async Task<ActionResult<ServiceResultDto<TravelerDetailDto>>> GetUserDetail()
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        var travelerFinded = await _appDb.Travelers!.FindAsync(currentUserId);
+        if(travelerFinded is null)
+            return NotFound(ServiceResultDto<TravelerDetailDto>.Fail("Viajante não encontrado."));
+
+        var getDetail = await _travelerService.GetTravelerDetail(currentUserId!);
+        return Ok(getDetail);
     }
     [HttpPatch("{id}")]
     public async Task<ActionResult<ServiceResultDto<UpdateTravelerDto>>> UpdateTraveler([FromBody] UpdateTravelerDto updateTravelerDto, string id) 
