@@ -9,5 +9,6 @@ public interface ITraveler
     Task<ServiceResultDto<CreateTravelerDto>> CreateTraveler(CreateTravelerDto createTravelerDto, string userId);
     Task<ServiceResultDto<List<TravelerDetailDto>>> GetTravelers();
     Task<ServiceResultDto<TravelerDetailDto>> GetTravelerDetail(string travelerId);
+    Task<ServiceResultDto<TravelerDetailDto>> GetSpecificTravelerDetail(string travelerId, string authenticatedUser);
     Task<ServiceResultDto<UpdateTravelerDto>> UpdateTraveler(UpdateTravelerDto updateTravelerDto, string userId, string authenticatedUser);
 }
