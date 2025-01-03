@@ -64,6 +64,21 @@ public class TravelerController: ControllerBase
         var getDetail = await _travelerService.GetTravelerDetail(currentUserId!);
         return Ok(getDetail);
     }
+
+    [HttpGet("detail/{id}")]
+    public async Task<ActionResult<ServiceResultDto<TravelerDetailDto>>> GetSpecificTravelerDetail(string id)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(string.IsNullOrEmpty(currentUserId))
+            return Unauthorized(ServiceResultDto<TravelerDetailDto>.Fail("Usuário não authenticado."));
+
+        var result = await _travelerService.GetSpecificTravelerDetail(id, currentUserId);
+        if(!result.Success)
+            return BadRequest( new { result.Message, result.Errors });
+
+        return Ok(result);
+    }
+
     [HttpPatch("{id}")]
     public async Task<ActionResult<ServiceResultDto<UpdateTravelerDto>>> UpdateTraveler([FromBody] UpdateTravelerDto updateTravelerDto, string id) 
     {
