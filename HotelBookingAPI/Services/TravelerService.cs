@@ -86,6 +86,49 @@ public class TravelerService: ITraveler
         return ServiceResultDto<TravelerDetailDto>.Fail("Viajante não localizado.");
     }
 
+    public async Task<ServiceResultDto<TravelerDetailDto>> GetSpecificTravelerDetail(string travelerId, string authenticatedUser)
+    {
+        var userWithPermission = await CheckUserAuthenticated(authenticatedUser,travelerId);
+        if(!userWithPermission)
+            return ServiceResultDto<TravelerDetailDto>.Fail("Esse usuário não tem permissão para editar o viajante");
+
+        var travelerResult = (
+                                from userDb in _userManager.Users
+                                join travelerDb in _dbContext.Travelers! on userDb.Id equals travelerDb.UserId
+                                where travelerDb.UserId == travelerId
+                                select new TravelerDetailDto
+                                {
+                                    UserId = userDb.Id,
+                                    FirstName = userDb.FirstName,
+                                    LastName = userDb.LastName,
+                                    Email = userDb.Email,
+                                    PhoneNumber = userDb.PhoneNumber,
+                                    BirthDate = userDb.BirthDate.ToString( ),
+                                    IsActive = userDb.IsActive,
+                                    NationalId = userDb.NationalId,
+                                    RegistrationId = userDb.RegistrationId,
+                                    Address = travelerDb.Address,
+                                    City = travelerDb.City,
+                                    State = travelerDb.State,
+                                    PostalCode = travelerDb.PostalCode,
+                                    Country = travelerDb.Country,
+                                    EmergencyContact = travelerDb.EmergencyContact,
+                                    EmergencyContactName = travelerDb.EmergencyContactName,
+                                    HasEspecialNeeds = travelerDb.HasSpecialNeeds,
+                                    SpecialNeedsDetails = travelerDb.SpecialNeedsDetails,
+                                    DietaryPreferences = travelerDb.DietaryPreferences,
+                                    CreatedOn = userDb.CreatedOn.ToString( ),
+                                    EditedBy = userDb.EditedBy,
+                                    EditedOn = userDb.EditedOn.ToString( ),
+                                }
+                             ).FirstOrDefaultAsync( );
+
+        if(travelerResult != null)
+            return ServiceResultDto<TravelerDetailDto>.SuccessResult(await travelerResult,"Viajante localizado.");
+
+        return ServiceResultDto<TravelerDetailDto>.Fail("Viajante não localizado.");
+    }
+
     public async Task<ServiceResultDto<List<TravelerDetailDto>>> GetTravelers()
     {
         var travelerList = await _dbContext.Travelers!.ToListAsync( );
@@ -164,4 +207,5 @@ public class TravelerService: ITraveler
         }
         return true;
     }
+
 }
