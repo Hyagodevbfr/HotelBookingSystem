@@ -3,7 +3,9 @@ using HotelBookingAPI.Dtos;
 using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -80,6 +82,38 @@ public class RoomService : IRoom
         var successResult = ServiceResultDto<IEnumerable<RoomDetailDto>>.SuccessResult(roomDtos,"Quartos localizados.");
         return successResult;
     }
+
+    public async Task<ServiceResultDto<IEnumerable<RoomSearchResponse>>> GetAvaliableRooms([FromBody] RoomSearchRequest searchRequest)
+    {
+    if (searchRequest.CheckInDate >= searchRequest.CheckOutDate || searchRequest.CheckInDate == default ||
+            searchRequest.CheckInDate < DateTime.Now || searchRequest.CheckOutDate < DateTime.Now)
+        return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Datas de check-in e check-out inválidas.");
+    
+    if (searchRequest.AdultCapacity <= 0 || searchRequest.ChildCapacity < 0)
+        return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Capacidade inválida.");
+
+    var availableRooms = await _dbContext.Rooms!
+        .Where(room => !_dbContext.Bookings
+            .Any(b => b.RoomId == room.Id &&
+                      b.CheckInDate < searchRequest.CheckOutDate &&
+                      b.CheckOutDate > searchRequest.CheckInDate) &&
+                      room.Capacity >= (searchRequest.AdultCapacity + searchRequest.ChildCapacity) &&
+                      room.IsAvailable)
+        .Select(room => new RoomSearchResponse(
+                room.Id,
+                room.RoomName!,
+                room.Capacity,
+                room.PricePerNight,
+                EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate),
+                room.PricePerNight * EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate)
+            ))
+        .ToListAsync();
+
+    if (!availableRooms.Any())
+        return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Nenhum quarto disponível para os critérios especificados.");
+    
+    return ServiceResultDto<IEnumerable<RoomSearchResponse>>.SuccessResult(availableRooms, "Quartos Localizados");
+}
 
     public async Task<ServiceResultDto<RoomDetailDto>> GetRoom(int roomId)
     {
