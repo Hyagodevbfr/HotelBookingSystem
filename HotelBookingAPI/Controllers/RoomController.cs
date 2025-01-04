@@ -78,4 +78,18 @@ public class RoomController: ControllerBase
 
         return Ok(ServiceResultDto<RoomDto>.SuccessResult(roomDto,"Quarto editado com sucesso."));
     }
+
+    [AllowAnonymous]
+    [HttpGet("AvailableRooms")]
+    public async Task<ActionResult<RoomSearchResponse>> GetAvailableRooms([FromQuery] RoomSearchRequest searchRequest)
+    {
+        var result = await _roomService.GetAvaliableRooms(searchRequest);
+
+        if(!result.Success)
+        {
+            return BadRequest(ServiceResultDto<RoomSearchResponse>.Fail("Erro ao buscar quartos vagos", result.Errors));
+        }
+
+        return Ok(result.Data);
+    }
 }
