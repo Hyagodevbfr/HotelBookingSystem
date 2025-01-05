@@ -4,7 +4,7 @@ namespace HotelBookingAPI.Models;
 
 public class Booking
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string TravelerId { get; set; } = string.Empty;
     public Traveler? Traveler { get; set; }
     public int RoomId { get; set; }
