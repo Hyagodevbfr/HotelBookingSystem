@@ -179,7 +179,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasIndex("TravelerUserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.BookingHistory", b =>
@@ -204,7 +204,7 @@ namespace HotelBookingAPI.Migrations
                         .IsUnique()
                         .HasFilter("[TravelerUserId] IS NOT NULL");
 
-                    b.ToTable("BookingHistories");
+                    b.ToTable("BookingHistories", (string)null);
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.Room", b =>
@@ -272,7 +272,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Rooms");
+                    b.ToTable("Rooms", (string)null);
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.Traveler", b =>
@@ -335,7 +335,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Travelers");
+                    b.ToTable("Travelers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
