@@ -92,4 +92,14 @@ public class RoomController: ControllerBase
 
         return Ok(result.Data);
     }
+    [AllowAnonymous]
+    [HttpGet("DetailsAvailableRoom/{id}")]
+    public async Task<ActionResult<ServiceResultDto<DetailsAvailableRoom>>> GetDetailsAvaliableRoom(int id, [FromQuery] string queries)
+    {
+        var result = await _roomService.GetDetailsAvailableRoom(id, queries);
+        if(!result.Success)
+            return BadRequest(ServiceResultDto<DetailsAvailableRoom>.Fail("Erro ao localizar detalhes do quarto.", result.Errors));
+
+        return Ok(ServiceResultDto<DetailsAvailableRoom>.SuccessResult(result.Data, "Quarto localizado."));
+    }
 }
