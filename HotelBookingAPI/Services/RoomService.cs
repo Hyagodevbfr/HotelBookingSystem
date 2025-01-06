@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace HotelBookingAPI.Services;
 
@@ -114,6 +115,40 @@ public class RoomService : IRoom
     
     return ServiceResultDto<IEnumerable<RoomSearchResponse>>.SuccessResult(availableRooms, "Quartos Localizados");
 }
+
+    public async Task<ServiceResultDto<DetailsAvailableRoom>> GetDetailsAvailableRoom(int id, [FromQuery] string queries)
+    {
+        if(string.IsNullOrEmpty(queries))
+            return ServiceResultDto<DetailsAvailableRoom>.Fail("Não foi possível localizar os detalhes do quarto.");
+
+        var queryParameters = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(queries);
+
+        if(!queryParameters.TryGetValue("CheckInDate",out var checkInDate) ||
+        !queryParameters.TryGetValue("CheckOutDate",out var checkOutDate) ||
+        !queryParameters.TryGetValue("AdultCapacity",out var adultCapacity) ||
+        !queryParameters.TryGetValue("ChildCapacity",out var childCapacity))
+            return ServiceResultDto<DetailsAvailableRoom>.Fail("As queries fornecidas são inválidas ou estão incompletas.");
+
+        if(!DateTime.TryParse(checkInDate,out var parsedCheckInDate) ||
+        !DateTime.TryParse(checkOutDate,out var parsedCheckOutDate) ||
+        !int.TryParse(adultCapacity,out var parsedAdultCapacity) ||
+        !int.TryParse(childCapacity,out var parsedChildCapacity))
+            return ServiceResultDto<DetailsAvailableRoom>.Fail("Os parâmetros das queries são inválidos.");
+
+        var avaliableRoom = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == id);
+        if(avaliableRoom is null)
+            return ServiceResultDto<DetailsAvailableRoom>.Fail("Quarto não localizado.");
+
+        var nights = (parsedCheckOutDate - parsedCheckInDate).Days;
+        var totalStay = nights * avaliableRoom.PricePerNight;
+
+        var response = _mapper.Map<DetailsAvailableRoom>(avaliableRoom);
+        response.TotalStay = totalStay;
+        response.Nights = nights;
+        response.Guests = parsedAdultCapacity + parsedChildCapacity;
+
+        return ServiceResultDto<DetailsAvailableRoom>.SuccessResult(response, "Quarto Localizado.");
+    }
 
     public async Task<ServiceResultDto<RoomDetailDto>> GetRoom(int roomId)
     {
