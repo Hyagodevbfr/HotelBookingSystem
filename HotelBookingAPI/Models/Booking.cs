@@ -1,9 +1,11 @@
 ﻿using HotelBookingAPI.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace HotelBookingAPI.Models;
 
 public class Booking
 {
+    [Key]
     public int Id { get; set; }
     public string TravelerId { get; set; } = string.Empty;
     public Traveler? Traveler { get; set; }
