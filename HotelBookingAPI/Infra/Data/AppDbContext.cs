@@ -12,6 +12,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<BookingHistory> BookingHistories { get; set; }
     public DbSet<Traveler>? Travelers { get; set; }
+    public DbSet<Guest>? Guests { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options){}
     protected override void OnModelCreating(ModelBuilder builder)
@@ -55,5 +56,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .HasOne(b => b.Traveler)
             .WithMany( )
             .HasForeignKey(b => b.TravelerId);
+
+        builder.Entity<Booking>( )
+            .HasKey(b => b.Id);
+
+        builder.Entity<Booking>( )
+            .Property(b => b.Id)
+            .ValueGeneratedOnAdd( );
     }
 }
