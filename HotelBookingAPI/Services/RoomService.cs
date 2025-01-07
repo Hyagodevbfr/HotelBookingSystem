@@ -116,8 +116,12 @@ public class RoomService : IRoom
     return ServiceResultDto<IEnumerable<RoomSearchResponse>>.SuccessResult(availableRooms, "Quartos Localizados");
 }
 
-    public async Task<ServiceResultDto<DetailsAvailableRoom>> GetDetailsAvailableRoom(int id, [FromQuery] string queries)
+    public async Task<ServiceResultDto<DetailsAvailableRoom>> GetDetailsAvailableRoom(int id, string userId, [FromQuery] string queries)
     {
+        var traveler = await _dbContext.Travelers!.FindAsync(userId);
+        if(traveler is null)
+            return ServiceResultDto<DetailsAvailableRoom>.NullContent("Usuário não possui perfil de viajante.");
+
         if(string.IsNullOrEmpty(queries))
             return ServiceResultDto<DetailsAvailableRoom>.Fail("Não foi possível localizar os detalhes do quarto.");
 
