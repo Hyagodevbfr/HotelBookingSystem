@@ -126,9 +126,11 @@ namespace HotelBookingAPI.Migrations
 
             modelBuilder.Entity("HotelBookingAPI.Models.Booking", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<Guid?>("BookingHistoryId")
                         .HasColumnType("uniqueidentifier");
@@ -179,7 +181,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasIndex("TravelerUserId");
 
-                    b.ToTable("Bookings", (string)null);
+                    b.ToTable("Bookings");
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.BookingHistory", b =>
@@ -204,7 +206,65 @@ namespace HotelBookingAPI.Migrations
                         .IsUnique()
                         .HasFilter("[TravelerUserId] IS NOT NULL");
 
-                    b.ToTable("BookingHistories", (string)null);
+                    b.ToTable("BookingHistories");
+                });
+
+            modelBuilder.Entity("HotelBookingAPI.Models.Guest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("BirthDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DietaryPreferences")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EditedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EditedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("HasSpecialNeeds")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NationalId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegistrationId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SpecialNeedsDetails")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TravelerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TravelerUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TravelerUserId");
+
+                    b.ToTable("Guests");
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.Room", b =>
@@ -272,7 +332,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Rooms", (string)null);
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.Traveler", b =>
@@ -335,7 +395,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Travelers", (string)null);
+                    b.ToTable("Travelers");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -509,6 +569,17 @@ namespace HotelBookingAPI.Migrations
                     b.HasOne("HotelBookingAPI.Models.Traveler", null)
                         .WithOne("BookingHistory")
                         .HasForeignKey("HotelBookingAPI.Models.BookingHistory", "TravelerUserId");
+
+                    b.Navigation("Traveler");
+                });
+
+            modelBuilder.Entity("HotelBookingAPI.Models.Guest", b =>
+                {
+                    b.HasOne("HotelBookingAPI.Models.Traveler", "Traveler")
+                        .WithMany()
+                        .HasForeignKey("TravelerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Traveler");
                 });

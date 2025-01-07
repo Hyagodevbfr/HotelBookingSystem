@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace HotelBookingAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class AddNewTables : Migration
+    public partial class FixesDatabaseInconsistency : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -26,7 +26,11 @@ namespace HotelBookingAPI.Migrations
                     HasSpecialNeeds = table.Column<bool>(type: "bit", nullable: false),
                     SpecialNeedsDetails = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DietaryPreferences = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastReservationDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    LastReservationDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EditedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EditedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -64,12 +68,43 @@ namespace HotelBookingAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Guests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TravelerId = table.Column<int>(type: "int", nullable: false),
+                    TravelerUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NationalId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RegistrationId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    BirthDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    HasSpecialNeeds = table.Column<bool>(type: "bit", nullable: false),
+                    SpecialNeedsDetails = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DietaryPreferences = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedOn = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EditedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EditedOn = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Guests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Guests_Travelers_TravelerUserId",
+                        column: x => x.TravelerUserId,
+                        principalTable: "Travelers",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Bookings",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TravelerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TravelerUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TravelerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: false),
                     CheckInDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CheckOutDate = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -79,7 +114,8 @@ namespace HotelBookingAPI.Migrations
                     EditedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     EditedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BookingHistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    BookingHistoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TravelerUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -96,11 +132,16 @@ namespace HotelBookingAPI.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Bookings_Travelers_TravelerUserId",
-                        column: x => x.TravelerUserId,
+                        name: "FK_Bookings_Travelers_TravelerId",
+                        column: x => x.TravelerId,
                         principalTable: "Travelers",
                         principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Travelers_TravelerUserId",
+                        column: x => x.TravelerUserId,
+                        principalTable: "Travelers",
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateIndex(
@@ -127,8 +168,18 @@ namespace HotelBookingAPI.Migrations
                 column: "RoomId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Bookings_TravelerId",
+                table: "Bookings",
+                column: "TravelerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Bookings_TravelerUserId",
                 table: "Bookings",
+                column: "TravelerUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Guests_TravelerUserId",
+                table: "Guests",
                 column: "TravelerUserId");
         }
 
@@ -137,6 +188,9 @@ namespace HotelBookingAPI.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Bookings");
+
+            migrationBuilder.DropTable(
+                name: "Guests");
 
             migrationBuilder.DropTable(
                 name: "BookingHistories");
