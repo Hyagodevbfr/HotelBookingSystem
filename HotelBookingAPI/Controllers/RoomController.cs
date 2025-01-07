@@ -16,12 +16,14 @@ public class RoomController: ControllerBase
     private readonly IRoom _roomService;
     private readonly UserManager<AppUser> _userManager;
     private readonly IUserVerifier _userRoleVerifier;
+    private readonly IUserVerifier _userVerifier;
 
-    public RoomController(IRoom roomService,UserManager<AppUser> userManager,IUserVerifier userRoleVerifier)
+    public RoomController(IRoom roomService,UserManager<AppUser> userManager,IUserVerifier userRoleVerifier, IUserVerifier userVerifier)
     {
         _roomService = roomService;
         _userManager = userManager;
         _userRoleVerifier = userRoleVerifier;
+        _userVerifier = userVerifier;
     }
     [HttpPost]
     public async Task<ActionResult<ServiceResultDto<RoomDto>>> CreateRoom([FromBody] RoomDto roomDto)
@@ -96,7 +98,11 @@ public class RoomController: ControllerBase
     [HttpGet("DetailsAvailableRoom/{id}")]
     public async Task<ActionResult<ServiceResultDto<DetailsAvailableRoom>>> GetDetailsAvaliableRoom(int id, [FromQuery] string queries)
     {
-        var result = await _roomService.GetDetailsAvailableRoom(id, queries);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
+            return Unauthorized(ServiceResultDto<List<TravelerDetailDto>>.Fail("Usuário não autênticado."));
+
+        var result = await _roomService.GetDetailsAvailableRoom(id, currentUserId!, queries);
         if(!result.Success)
             return BadRequest(ServiceResultDto<DetailsAvailableRoom>.Fail("Erro ao localizar detalhes do quarto.", result.Errors));
 
