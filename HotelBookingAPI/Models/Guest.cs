@@ -11,6 +11,7 @@ public class Guest : Notifiable<Notification>
     public int Id { get; set; }
     public int TravelerId { get; set; }
     public Traveler? Traveler { get; set; }
+    public List<GuestBooking>? GuestBookings { get; set; }
 
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
