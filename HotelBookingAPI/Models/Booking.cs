@@ -9,6 +9,7 @@ public class Booking
     public int Id { get; set; }
     public string TravelerId { get; set; } = string.Empty;
     public Traveler? Traveler { get; set; }
+    public List<GuestBooking>? GuestBookings { get; set; }
     public int RoomId { get; set; }
     public Room Room { get; set; } = null!;
     public DateTime CheckInDate { get; set; }
