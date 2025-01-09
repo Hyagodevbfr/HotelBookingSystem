@@ -24,7 +24,7 @@ public class TravelerController: ControllerBase
         _userVerifier = userVerifier;
         _appDb = appDb;
     }
-    [Authorize(Roles = "Admin, Employee")]
+
     [HttpPost]
     public async Task<IActionResult> CreateTraveler([FromBody]CreateTravelerDto createTravelerDto)
     {
