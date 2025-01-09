@@ -1,5 +1,8 @@
-﻿namespace HotelBookingAPI.Infra.Data.Repositories;
+﻿using HotelBookingAPI.Dtos;
 
-public class IBooking
+namespace HotelBookingAPI.Infra.Data.Repositories;
+
+public interface IBooking
 {
+    Task<ServiceResultDto<CreateBookingDto>> CreateBooking(CreateBookingDto createBookingDto);
 }
