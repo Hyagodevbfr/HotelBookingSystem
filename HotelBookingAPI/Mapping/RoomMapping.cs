@@ -9,6 +9,6 @@ public class RoomMapping : Profile
     public RoomMapping()
     {
         CreateMap<Room,RoomDetailDto>( );
-        CreateMap<Room,DetailsAvailableRoom>( );
+        CreateMap<Room,DetailsAvailableRoomDto>( );
     }
 }
