@@ -13,5 +13,5 @@ public interface IRoom
 
     //Search
     Task<ServiceResultDto<IEnumerable<RoomSearchResponse>>> GetAvaliableRooms([FromBody]RoomSearchRequest searchRequest);
-    Task<ServiceResultDto<DetailsAvailableRoom>> GetDetailsAvailableRoom(int id, string userId, [FromQuery] string queries);
+    Task<ServiceResultDto<DetailsAvailableRoomDto>> GetDetailsAvailableRoom(int id, string userId,[FromBody] RoomSearchRequest searchRequest);
 }
