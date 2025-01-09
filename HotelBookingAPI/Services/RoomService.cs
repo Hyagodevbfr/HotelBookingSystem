@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Runtime.Serialization;
 
 namespace HotelBookingAPI.Services;
 
@@ -86,29 +87,11 @@ public class RoomService : IRoom
 
     public async Task<ServiceResultDto<IEnumerable<RoomSearchResponse>>> GetAvaliableRooms([FromBody] RoomSearchRequest searchRequest)
     {
-    if (searchRequest.CheckInDate >= searchRequest.CheckOutDate || searchRequest.CheckInDate == default ||
-            searchRequest.CheckInDate < DateTime.Now || searchRequest.CheckOutDate < DateTime.Now)
-        return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Datas de check-in e check-out inválidas.");
-    
-    if (searchRequest.AdultCapacity <= 0 || searchRequest.ChildCapacity < 0)
-        return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Capacidade inválida.");
+        var validateRoomSearch = ValidateRoomSearch(searchRequest);
+        if(validateRoomSearch != null)
+            return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail(validateRoomSearch);
 
-    var availableRooms = await _dbContext.Rooms!
-        .Where(room => !_dbContext.Bookings
-            .Any(b => b.RoomId == room.Id &&
-                      b.CheckInDate < searchRequest.CheckOutDate &&
-                      b.CheckOutDate > searchRequest.CheckInDate) &&
-                      room.Capacity >= (searchRequest.AdultCapacity + searchRequest.ChildCapacity) &&
-                      room.IsAvailable)
-        .Select(room => new RoomSearchResponse(
-                room.Id,
-                room.RoomName!,
-                room.Capacity,
-                room.PricePerNight,
-                EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate),
-                room.PricePerNight * EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate)
-            ))
-        .ToListAsync();
+    var availableRooms = await FetchAvailableRoomAsync(searchRequest);
 
     if (!availableRooms.Any())
         return ServiceResultDto<IEnumerable<RoomSearchResponse>>.Fail("Nenhum quarto disponível para os critérios especificados.");
@@ -116,42 +99,32 @@ public class RoomService : IRoom
     return ServiceResultDto<IEnumerable<RoomSearchResponse>>.SuccessResult(availableRooms, "Quartos Localizados");
 }
 
-    public async Task<ServiceResultDto<DetailsAvailableRoom>> GetDetailsAvailableRoom(int id, string userId, [FromQuery] string queries)
+    public async Task<ServiceResultDto<DetailsAvailableRoomDto>> GetDetailsAvailableRoom(int id, string userId,[FromBody] RoomSearchRequest searchRequest)
     {
         var traveler = await _dbContext.Travelers!.FindAsync(userId);
         if(traveler is null)
-            return ServiceResultDto<DetailsAvailableRoom>.NullContent("Usuário não possui perfil de viajante.");
+            return ServiceResultDto<DetailsAvailableRoomDto>.NullContent("Usuário não possui perfil de viajante.");
 
-        if(string.IsNullOrEmpty(queries))
-            return ServiceResultDto<DetailsAvailableRoom>.Fail("Não foi possível localizar os detalhes do quarto.");
-
-        var queryParameters = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(queries);
-
-        if(!queryParameters.TryGetValue("CheckInDate",out var checkInDate) ||
-        !queryParameters.TryGetValue("CheckOutDate",out var checkOutDate) ||
-        !queryParameters.TryGetValue("AdultCapacity",out var adultCapacity) ||
-        !queryParameters.TryGetValue("ChildCapacity",out var childCapacity))
-            return ServiceResultDto<DetailsAvailableRoom>.Fail("As queries fornecidas são inválidas ou estão incompletas.");
-
-        if(!DateTime.TryParse(checkInDate,out var parsedCheckInDate) ||
-        !DateTime.TryParse(checkOutDate,out var parsedCheckOutDate) ||
-        !int.TryParse(adultCapacity,out var parsedAdultCapacity) ||
-        !int.TryParse(childCapacity,out var parsedChildCapacity))
-            return ServiceResultDto<DetailsAvailableRoom>.Fail("Os parâmetros das queries são inválidos.");
-
-        var avaliableRoom = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == id);
+        var avaliableRoom = await FetchAvailableRoomAsync(searchRequest);
+        var room = avaliableRoom.FirstOrDefault(r => r.Id == id);
         if(avaliableRoom is null)
-            return ServiceResultDto<DetailsAvailableRoom>.Fail("Quarto não localizado.");
+            return ServiceResultDto<DetailsAvailableRoomDto>.Fail("Quarto não localizado.");
 
-        var nights = (parsedCheckOutDate - parsedCheckInDate).Days;
-        var totalStay = nights * avaliableRoom.PricePerNight;
+        var nights = (searchRequest.CheckOutDate - searchRequest.CheckInDate).Days;
+        var totalStay = nights * room!.PricePerNight;
 
-        var response = _mapper.Map<DetailsAvailableRoom>(avaliableRoom);
-        response.TotalStay = totalStay;
-        response.Nights = nights;
-        response.Guests = parsedAdultCapacity + parsedChildCapacity;
-
-        return ServiceResultDto<DetailsAvailableRoom>.SuccessResult(response, "Quarto Localizado.");
+        var response = new DetailsAvailableRoomDto
+        {
+            Id = room.Id,
+            RoomName = room.RoomName,
+            Capacity = room.Capacity,
+            PricePerNight = room.PricePerNight,
+            TotalStay = totalStay,
+            Nights = nights,
+            Guests = searchRequest.AdultCapacity + searchRequest.ChildCapacity
+        };
+        
+        return ServiceResultDto<DetailsAvailableRoomDto>.SuccessResult(response, "Quarto Localizado.");
     }
 
     public async Task<ServiceResultDto<RoomDetailDto>> GetRoom(int roomId)
@@ -165,5 +138,37 @@ public class RoomService : IRoom
         var result = ServiceResultDto<RoomDetailDto>.SuccessResult(roomDto,"Quarto encontrado.");
 
         return result;
+    }
+
+    private string? ValidateRoomSearch(RoomSearchRequest searchRequest)
+    {
+        if(searchRequest.CheckInDate >= searchRequest.CheckOutDate || searchRequest.CheckInDate == default ||
+            searchRequest.CheckInDate < DateTime.Now || searchRequest.CheckOutDate < DateTime.Now)
+            return "Datas de check-in e check-out inválidas.";
+
+        if(searchRequest.AdultCapacity <= 0 || searchRequest.ChildCapacity < 0)
+            return "Capacidade inválida.";
+
+        return null;
+    }
+
+    private async Task<List<RoomSearchResponse>> FetchAvailableRoomAsync(RoomSearchRequest searchRequest)
+    {
+        return await _dbContext.Rooms!
+                        .Where(room => !_dbContext.Bookings
+                            .Any(b => b.RoomId == room.Id &&
+                                        b.CheckInDate < searchRequest.CheckOutDate &&
+                                        b.CheckOutDate > searchRequest.CheckInDate) &&
+                                        room.Capacity >= (searchRequest.AdultCapacity + searchRequest.ChildCapacity) &&
+                                        room.IsAvailable)
+                        .Select(room => new RoomSearchResponse(
+                                room.Id,
+                                room.RoomName!,
+                                room.Capacity,
+                                room.PricePerNight,
+                                EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate),
+                                room.PricePerNight * EF.Functions.DateDiffDay(searchRequest.CheckInDate,searchRequest.CheckOutDate)
+                            ))
+                        .ToListAsync( );
     }
 }
