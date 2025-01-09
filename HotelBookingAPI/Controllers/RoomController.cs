@@ -1,10 +1,12 @@
 ﻿using HotelBookingAPI.Dtos;
+using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
 using HotelBookingAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace HotelBookingAPI.Controllers;
@@ -17,13 +19,15 @@ public class RoomController: ControllerBase
     private readonly UserManager<AppUser> _userManager;
     private readonly IUserVerifier _userRoleVerifier;
     private readonly IUserVerifier _userVerifier;
+    private readonly AppDbContext _dbContext;
 
-    public RoomController(IRoom roomService,UserManager<AppUser> userManager,IUserVerifier userRoleVerifier, IUserVerifier userVerifier)
+    public RoomController(IRoom roomService,UserManager<AppUser> userManager,IUserVerifier userRoleVerifier, IUserVerifier userVerifier, AppDbContext dbContext)        
     {
         _roomService = roomService;
         _userManager = userManager;
         _userRoleVerifier = userRoleVerifier;
         _userVerifier = userVerifier;
+        _dbContext = dbContext;
     }
     [HttpPost]
     public async Task<ActionResult<ServiceResultDto<RoomDto>>> CreateRoom([FromBody] RoomDto roomDto)
@@ -95,17 +99,18 @@ public class RoomController: ControllerBase
         return Ok(result.Data);
     }
     [AllowAnonymous]
-    [HttpGet("DetailsAvailableRoom/{id}")]
-    public async Task<ActionResult<ServiceResultDto<DetailsAvailableRoom>>> GetDetailsAvaliableRoom(int id, [FromQuery] string queries)
+    [HttpPost("DetailsAvailableRoom/{id}")]
+    public async Task<ActionResult<ServiceResultDto<DetailsAvailableRoomDto>>> GetDetailsAvaliableRoom(int id, [FromBody] RoomSearchRequest searchRequest)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
-        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
-            return Unauthorized(ServiceResultDto<List<TravelerDetailDto>>.Fail("Usuário não autênticado."));
+        var traveler = await _dbContext.Travelers!.FirstOrDefaultAsync(t => t.UserId == currentUserId);
+        if(traveler is null)
+            return Unauthorized(ServiceResultDto<List<TravelerDetailDto>>.Fail("Viajante não autênticado."));
 
-        var result = await _roomService.GetDetailsAvailableRoom(id, currentUserId!, queries);
+        var result = await _roomService.GetDetailsAvailableRoom(id, currentUserId!, searchRequest);
         if(!result.Success)
-            return BadRequest(ServiceResultDto<DetailsAvailableRoom>.Fail("Erro ao localizar detalhes do quarto.", result.Errors));
+            return BadRequest(ServiceResultDto<DetailsAvailableRoomDto>.Fail("Erro ao localizar detalhes do quarto.", result.Errors));
 
-        return Ok(ServiceResultDto<DetailsAvailableRoom>.SuccessResult(result.Data, "Quarto localizado."));
+        return Ok(ServiceResultDto<DetailsAvailableRoomDto>.SuccessResult(result.Data, "Quarto localizado."));
     }
 }
