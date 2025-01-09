@@ -63,5 +63,19 @@ public class AppDbContext : IdentityDbContext<AppUser>
         builder.Entity<Booking>( )
             .Property(b => b.Id)
             .ValueGeneratedOnAdd( );
+
+
+        builder.Entity<GuestBooking>( )
+            .HasKey(gb => new { gb.GuestId,gb.BookingId });
+
+        builder.Entity<GuestBooking>( )
+            .HasOne(gb => gb.Guest)
+            .WithMany(g => g.GuestBookings)
+            .HasForeignKey(gb => gb.GuestId);
+
+        builder.Entity<GuestBooking>( )
+            .HasOne(gb => gb.Booking)
+            .WithMany(b => b.GuestBookings)
+            .HasForeignKey(gb => gb.BookingId);
     }
 }
