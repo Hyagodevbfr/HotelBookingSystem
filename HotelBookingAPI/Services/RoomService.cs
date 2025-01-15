@@ -3,13 +3,9 @@ using HotelBookingAPI.Dtos;
 using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Runtime.Serialization;
 
 namespace HotelBookingAPI.Services;
 
@@ -106,8 +102,8 @@ public class RoomService : IRoom
             return ServiceResultDto<DetailsAvailableRoomDto>.NullContent("Usuário não possui perfil de viajante.");
 
         var avaliableRoom = await FetchAvailableRoomAsync(searchRequest);
-        var room = avaliableRoom.FirstOrDefault(r => r.Id == id);
-        if(avaliableRoom is null)
+        var room = avaliableRoom.FirstOrDefault(r => r.roomId == id);
+        if(avaliableRoom is null || !avaliableRoom.Any(r => r.roomId == id))
             return ServiceResultDto<DetailsAvailableRoomDto>.Fail("Quarto não localizado.");
 
         var nights = (searchRequest.CheckOutDate - searchRequest.CheckInDate).Days;
@@ -115,7 +111,7 @@ public class RoomService : IRoom
 
         var response = new DetailsAvailableRoomDto
         {
-            Id = room.Id,
+            Id = room.roomId,
             RoomName = room.RoomName,
             Capacity = room.Capacity,
             PricePerNight = room.PricePerNight,
@@ -133,7 +129,6 @@ public class RoomService : IRoom
         var roomDto = _mapper.Map<RoomDetailDto>(room);
         if(roomDto is null)
             return ServiceResultDto<RoomDetailDto>.NullContent("Quarto não encontrado.");
-
 
         var result = ServiceResultDto<RoomDetailDto>.SuccessResult(roomDto,"Quarto encontrado.");
 
