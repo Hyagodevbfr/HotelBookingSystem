@@ -28,5 +28,10 @@ public class RoomDto
 
     [Range(0.01,double.MaxValue,ErrorMessage = "O preço por noite deve ser maior que zero.")]
     public double PricePerNight { get; set; }
+    public bool IsAvailable { get; set; }
+    public bool HasAirConditioning { get; set; } = false;
+    public bool HasWiFi { get; set; } = false;
+    public bool HasTV { get; set; } = false;
+    public bool IsAccessible { get; set; } = false;
     public List<string>? Amenities { get; set; } = new( );
 }
