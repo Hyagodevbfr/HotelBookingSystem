@@ -138,8 +138,14 @@ namespace HotelBookingAPI.Migrations
                     b.Property<DateTime>("CheckInDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<TimeOnly?>("CheckInTime")
+                        .HasColumnType("time");
+
                     b.Property<DateTime>("CheckOutDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<TimeOnly?>("CheckOutTime")
+                        .HasColumnType("time");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
