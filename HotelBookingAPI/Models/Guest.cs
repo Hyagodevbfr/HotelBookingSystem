@@ -9,7 +9,7 @@ namespace HotelBookingAPI.Models;
 public class Guest : Notifiable<Notification>
 {
     public int Id { get; set; }
-    public int TravelerId { get; set; }
+    public string TravelerId { get; set; } = string.Empty;
     public Traveler? Traveler { get; set; }
     public List<GuestBooking>? GuestBookings { get; set; }
 
