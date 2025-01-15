@@ -42,6 +42,7 @@ public class BookingService: IBooking
         booking.Room = room;
 
         _dbContext.Bookings!.Add(booking);
+        booking.Room.RoomsQuantity = room.RoomsQuantity - 1;
         await _dbContext.SaveChangesAsync( );
 
         if(bookingRequest.Guests != null)
