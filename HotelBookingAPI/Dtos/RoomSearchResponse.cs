@@ -2,7 +2,7 @@
 
 public record RoomSearchResponse
 (
-    int Id,
+    int roomId,
     string RoomName,
     int Capacity,
     double PricePerNight,
