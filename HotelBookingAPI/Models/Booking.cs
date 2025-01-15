@@ -12,8 +12,12 @@ public class Booking
     public List<GuestBooking>? GuestBookings { get; set; }
     public int RoomId { get; set; }
     public Room Room { get; set; } = null!;
+    [DataType(DataType.Date)]
     public DateTime CheckInDate { get; set; }
+    [DataType(DataType.Date)]
     public DateTime CheckOutDate { get; set; }
+    public TimeOnly? CheckInTime { get; set; }
+    public TimeOnly? CheckOutTime { get; set; }
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
