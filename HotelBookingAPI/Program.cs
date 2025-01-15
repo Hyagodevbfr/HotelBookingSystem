@@ -25,6 +25,7 @@ builder.Services.AddScoped<IUserVerifier, UserVerifierService>();
 builder.Services.AddScoped<IRoom, RoomService>();
 builder.Services.AddScoped<ITraveler, TravelerService>();
 builder.Services.AddScoped<ITravelerVerifier, TravelerVerifierService>();
+builder.Services.AddScoped<IBooking, BookingService>();
 
 builder.Services.AddAutoMapper(typeof(UserProfile));
 
