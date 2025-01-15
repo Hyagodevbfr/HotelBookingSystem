@@ -34,6 +34,10 @@ public class Room : Entity
         AdultCapacity = roomDto.AdultCapacity;
         ChildCapacity = roomDto.ChildCapacity;
         PricePerNight = roomDto.PricePerNight;
+        IsAccessible = roomDto.IsAccessible;
+        HasAirConditioning = roomDto.HasAirConditioning;
+        HasWiFi = roomDto.HasWiFi;
+        HasTV = roomDto.HasTV;
         Amenities = roomDto.Amenities;
         
         Validate();
@@ -48,6 +52,10 @@ public class Room : Entity
         AdultCapacity = roomDto.AdultCapacity;
         ChildCapacity = roomDto.ChildCapacity;
         PricePerNight = roomDto.PricePerNight;
+        IsAccessible = roomDto.IsAccessible;
+        HasAirConditioning = roomDto.HasAirConditioning;
+        HasWiFi = roomDto.HasWiFi;
+        HasTV = roomDto.HasTV;
         Amenities = roomDto.Amenities;
 
         Validate( );
