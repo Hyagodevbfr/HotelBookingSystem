@@ -22,13 +22,12 @@ public class BookingService: IBooking
             return ServiceResultDto<CreateBookingDto>.Fail("Viajante não localizado.");
 
         var room = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == bookingRequest.RoomId);
-        if(room is null)
-            return ServiceResultDto<CreateBookingDto>.Fail("Quarto não localizado.");
+        if(room is null || room.RoomsQuantity <= 0)
+            return ServiceResultDto<CreateBookingDto>.Fail("Quarto não disponível.");
 
         var booking = new Booking
         {
             TravelerId = bookingRequest.TravelerId,
-            Traveler = traveler,
             RoomId = bookingRequest.RoomId,
             CheckInDate = bookingRequest.CheckInDate,
             CheckOutDate = bookingRequest.CheckOutDate,
@@ -39,17 +38,15 @@ public class BookingService: IBooking
             CreatedBy = bookingRequest.TravelerId,
             EditedBy = bookingRequest.TravelerId,
         };
-        booking.Room = room;
 
         _dbContext.Bookings!.Add(booking);
-        booking.Room.RoomsQuantity = room.RoomsQuantity - 1;
-        await _dbContext.SaveChangesAsync( );
+        room.RoomsQuantity -= 1;
 
         if(bookingRequest.Guests != null)
         {
             foreach(var guest in bookingRequest.Guests)
             {
-                var guestFinded = new Guest
+                var guestEntity = new Guest
                 {
                     TravelerId = bookingRequest.TravelerId,
                     FirstName = guest.FirstName,
@@ -61,22 +58,17 @@ public class BookingService: IBooking
                     SpecialNeedsDetails = guest.SpecialNeedsDetails ?? string.Empty,
                     DietaryPreferences = guest.DietaryPreferences ?? string.Empty,
                 };
-                _dbContext.Guests!.Add(guestFinded);
-                await _dbContext.SaveChangesAsync( );
+                _dbContext.Guests!.Add(guestEntity);
 
-                var bookingObject = await _dbContext.Bookings!.FirstAsync(bo => bo.Id == booking.Id);
-                var guestObject = await _dbContext.Guests!.FirstAsync(go =>  go.Id == guestFinded.Id);
-                var guestBooking = new GuestBooking
+                _dbContext.GuestBookings!.Add(new GuestBooking
                 {
-                    BookingId = booking.Id,
-                    Booking = bookingObject,
-                    GuestId = guestFinded.Id,
-                    Guest = guestObject
-                };
-                booking.GuestBookings!.Add(guestBooking);
+                    Booking = booking,
+                    Guest = guestEntity,
+                });
             }
         }
-        await _dbContext.SaveChangesAsync();
+
+        await _dbContext.SaveChangesAsync( );
 
         var bookingResult = new CreateBookingDto
         {
@@ -91,4 +83,5 @@ public class BookingService: IBooking
 
         return ServiceResultDto<CreateBookingDto>.SuccessResult(bookingResult,"Reserva criada.");
     }
+
 }

@@ -282,7 +282,7 @@ namespace HotelBookingAPI.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("GuestBooking");
+                    b.ToTable("GuestBookings");
                 });
 
             modelBuilder.Entity("HotelBookingAPI.Models.Room", b =>
