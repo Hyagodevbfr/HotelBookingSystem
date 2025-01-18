@@ -13,6 +13,7 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<BookingHistory> BookingHistories { get; set; }
     public DbSet<Traveler>? Travelers { get; set; }
     public DbSet<Guest>? Guests { get; set; }
+    public DbSet<GuestBooking>? GuestBookings { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options){}
     protected override void OnModelCreating(ModelBuilder builder)
