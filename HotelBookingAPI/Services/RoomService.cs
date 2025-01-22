@@ -36,6 +36,8 @@ public class RoomService : IRoom
 
             return result;
         }
+        TimeOnly checkinTime = room.CheckInTime  ?? new TimeOnly(14,0,0);
+        TimeOnly checkoutTime = room.CheckOutTime  ?? new TimeOnly(11,0,0);
 
         await _dbContext.Rooms!.AddAsync(room);
         await _dbContext.SaveChangesAsync();
