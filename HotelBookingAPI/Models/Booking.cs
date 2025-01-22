@@ -16,8 +16,6 @@ public class Booking
     public DateTime CheckInDate { get; set; }
     [DataType(DataType.Date)]
     public DateTime CheckOutDate { get; set; }
-    public TimeOnly? CheckInTime { get; set; }
-    public TimeOnly? CheckOutTime { get; set; }
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
