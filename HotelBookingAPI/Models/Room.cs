@@ -14,6 +14,8 @@ public class Room : Entity
     public int AdultCapacity { get; set; } // Capacidade de adultos
     public int ChildCapacity { get; set; } // Capacidade de crianças
     public double PricePerNight { get; set; } // Preço por noite
+    public TimeOnly? CheckInTime { get; set; }
+    public TimeOnly? CheckOutTime { get; set; }
     public bool IsAvailable { get; set; } // Indica se o quarto está disponível para reserva
     public bool HasAirConditioning { get; set; } = false; // Indica se o quarto possui ar-condicionado
     public bool HasWiFi { get; set; } = false; // Indica se o quarto tem Wi-Fi
@@ -33,6 +35,8 @@ public class Room : Entity
         Capacity = roomDto.Capacity;
         AdultCapacity = roomDto.AdultCapacity;
         ChildCapacity = roomDto.ChildCapacity;
+        CheckInTime = roomDto.CheckInTime;
+        CheckOutTime = roomDto.CheckOutTime;
         PricePerNight = roomDto.PricePerNight;
         IsAccessible = roomDto.IsAccessible;
         HasAirConditioning = roomDto.HasAirConditioning;
@@ -51,6 +55,8 @@ public class Room : Entity
         Capacity = roomDto.Capacity;
         AdultCapacity = roomDto.AdultCapacity;
         ChildCapacity = roomDto.ChildCapacity;
+        CheckInTime = roomDto.CheckInTime;
+        CheckOutTime = roomDto.CheckOutTime;
         PricePerNight = roomDto.PricePerNight;
         IsAccessible = roomDto.IsAccessible;
         HasAirConditioning = roomDto.HasAirConditioning;
