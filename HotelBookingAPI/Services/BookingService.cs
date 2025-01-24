@@ -1,4 +1,5 @@
-﻿using HotelBookingAPI.Dtos;
+﻿using AutoMapper;
+using HotelBookingAPI.Dtos;
 using HotelBookingAPI.Enums;
 using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
@@ -68,8 +69,6 @@ public class BookingService: IBooking
 
         TimeSpan totalDays = bookingRequest.CheckOutDate - bookingRequest.CheckInDate;
         var totalPriceBooking = (decimal)room.PricePerNight * (decimal)totalDays.Days;
-
-        Console.Write($"Total Estadia: {totalPriceBooking}, Total dias: {totalDays.Days}");
 
         var booking = new Booking
         {
@@ -171,5 +170,36 @@ public class BookingService: IBooking
         };
 
         return ServiceResultDto<CreateBookingDto>.SuccessResult(bookingResult,"Reserva criada com sucesso.");
+    }
+
+    public async Task<ServiceResultDto<List<BookingDto>>> GetAllBookings()
+    {
+        var bookings = await _dbContext.Bookings!.Include(b => b.Traveler).ThenInclude(t => t!.User).Include(b => b.GuestBookings)!.ThenInclude(gb => gb.Guest).ToListAsync( );
+        var bookingDtos = bookings.Select(booking => new BookingDto
+        {
+            Id = booking.Id,
+            TravelerId = booking.TravelerId,
+            TravelerFullName = $"{booking.Traveler!.User.FirstName} {booking.Traveler.User.LastName}",
+            TravelerNationalId = booking.Traveler.User.NationalId,
+            Guests = booking.GuestBookings!.Select(gb => new GuestDto
+            {
+                FirstName = gb.Guest.FirstName,
+                LastName = gb.Guest.LastName,
+                RegistrationId = gb.Guest.RegistrationId,
+                BirthDate = gb.Guest.BirthDate,
+                HasSpecialNeeds = gb.Guest.HasSpecialNeeds,
+                SpecialNeedsDetails = gb.Guest.SpecialNeedsDetails,
+                DietaryPreferences = gb.Guest.DietaryPreferences,
+            }).ToList( ),
+            RoomId = booking.RoomId,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status
+        }).ToList( );
+
+
+        var successResult = ServiceResultDto<List<BookingDto>>.SuccessResult(bookingDtos,"Quartos localizados.");
+        return successResult;
     }
 }
