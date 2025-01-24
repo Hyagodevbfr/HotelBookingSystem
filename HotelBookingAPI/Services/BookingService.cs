@@ -41,13 +41,43 @@ public class BookingService: IBooking
             }
         }
 
+        DateTime concatenatedCheckInDate = bookingRequest.CheckInDate;
+        TimeOnly concatenatedCheckInTime = (TimeOnly)room.CheckInTime!;
+        DateTime concatenadCheckOutDate = bookingRequest.CheckOutDate;
+        TimeOnly concatenadCheckOutTime = (TimeOnly)room.CheckOutTime!;
+
+        DateTime ajustedCheckinDate = new DateTime(
+            concatenatedCheckInDate.Year,
+            concatenatedCheckInDate.Month,
+            concatenatedCheckInDate.Day,
+            concatenatedCheckInTime.Hour,
+            concatenatedCheckInTime.Minute,
+            concatenatedCheckInTime.Second,
+            concatenatedCheckInTime.Millisecond
+        );
+
+        DateTime ajustedCheckoutDate = new DateTime(
+            concatenadCheckOutDate.Year,
+            concatenadCheckOutDate.Month,
+            concatenadCheckOutDate.Day,
+            concatenadCheckOutTime.Hour,
+            concatenadCheckOutTime.Minute,
+            concatenadCheckOutTime.Second,
+            concatenadCheckOutTime.Millisecond
+        );
+
+        TimeSpan totalDays = bookingRequest.CheckOutDate - bookingRequest.CheckInDate;
+        var totalPriceBooking = (decimal)room.PricePerNight * (decimal)totalDays.Days;
+
+        Console.Write($"Total Estadia: {totalPriceBooking}, Total dias: {totalDays.Days}");
+
         var booking = new Booking
         {
             TravelerId = bookingRequest.TravelerId,
             RoomId = bookingRequest.RoomId,
-            CheckInDate = bookingRequest.CheckInDate,
-            CheckOutDate = bookingRequest.CheckOutDate,
-            TotalPrice = bookingRequest.TotalPrice,
+            CheckInDate = ajustedCheckinDate,
+            CheckOutDate = ajustedCheckoutDate,
+            TotalPrice = totalPriceBooking,
             Status = BookingStatus.Pending,
             CreatedAt = DateTime.Now,
             EditedAt = DateTime.Now,
@@ -56,6 +86,8 @@ public class BookingService: IBooking
         };
 
         _dbContext.Bookings!.Add(booking);
+        if(room.RoomsQuantity < 0)
+            return ServiceResultDto<CreateBookingDto>.Fail($"Quarto não disponível.");
         room.RoomsQuantity -= 1;
 
         var guestBookings = new List<GuestBookingDto>( );
@@ -63,27 +95,38 @@ public class BookingService: IBooking
         {
             foreach(var guest in bookingRequest.Guests)
             {
-                var guestEntity = new Guest
+                var guestExist = await _dbContext.Guests!.FirstOrDefaultAsync(g => g.RegistrationId == guest.RegistrationId && g.TravelerId == traveler.UserId);
+                Guest guestEntity;
+
+                if(guestExist != null)
                 {
-                    TravelerId = bookingRequest.TravelerId,
-                    FirstName = guest.FirstName,
-                    LastName = guest.LastName,
-                    NationalId = guest.NationalId ?? string.Empty,
-                    RegistrationId = guest.RegistrationId,
-                    BirthDate = guest.BirthDate,
-                    HasSpecialNeeds = guest.HasSpecialNeeds,
-                    SpecialNeedsDetails = guest.SpecialNeedsDetails ?? string.Empty,
-                    DietaryPreferences = guest.DietaryPreferences ?? string.Empty,
-                    CreatedOn = DateTime.Now
-                };
-                _dbContext.Guests!.Add(guestEntity);
+                    guestEntity = guestExist;
+                }
+                else
+                {
+                    guestEntity = new Guest
+                    {
+                        TravelerId = bookingRequest.TravelerId,
+                        FirstName = guest.FirstName,
+                        LastName = guest.LastName,
+                        NationalId = guest.NationalId ?? string.Empty,
+                        RegistrationId = guest.RegistrationId,
+                        BirthDate = guest.BirthDate,
+                        HasSpecialNeeds = guest.HasSpecialNeeds,
+                        SpecialNeedsDetails = guest.SpecialNeedsDetails ?? string.Empty,
+                        DietaryPreferences = guest.DietaryPreferences ?? string.Empty,
+                        CreatedOn = DateTime.Now
+                    };
+
+                    await _dbContext.Guests!.AddAsync(guestEntity);
+                }
 
                 var guestBooking = new GuestBooking
                 {
                     Booking = booking,
                     Guest = guestEntity,
                 };
-                _dbContext.GuestBookings!.Add(guestBooking);
+                await _dbContext.GuestBookings!.AddAsync(guestBooking);
 
                 guestBookings.Add(new GuestBookingDto
                 {
@@ -114,47 +157,19 @@ public class BookingService: IBooking
 
         await _dbContext.SaveChangesAsync( );
 
-        DateTime concatenatedCheckinDate = booking.CheckInDate;
-        TimeOnly concatenatedCheckinTime = (TimeOnly)room.CheckInTime!;
-        DateTime concatenadCheckoutDate = booking.CheckOutDate;
-        TimeOnly concatenadCheckoutTime = (TimeOnly)room.CheckOutTime!;
-
-        DateTime ajustedCheckinDate = new DateTime(
-            concatenatedCheckinDate.Year,
-            concatenatedCheckinDate.Month,
-            concatenatedCheckinDate.Day,
-            concatenatedCheckinTime.Hour,
-            concatenatedCheckinTime.Minute,
-            concatenatedCheckinTime.Second,
-            concatenatedCheckinTime.Millisecond
-            );
-        
-        DateTime ajustedCheckoutDate = new DateTime(
-            concatenadCheckoutDate.Year,
-            concatenadCheckoutDate.Month,
-            concatenadCheckoutDate.Day,
-            concatenadCheckoutDate.Hour,
-            concatenadCheckoutDate.Minute,
-            concatenadCheckoutDate.Second,
-            concatenadCheckoutDate.Millisecond
-            );
-
-
         var bookingResult = new CreateBookingDto
         {
             TravelerId = bookingRequest.TravelerId,
             GuestBookings = booking.GuestBookings,
             RoomId = booking.RoomId,
-            CheckInDate = ajustedCheckinDate,
-            CheckOutDate = ajustedCheckoutDate,
+            CheckInDate = bookingRequest.CheckInDate,
+            CheckOutDate = bookingRequest.CheckOutDate,
             CheckInTime = room.CheckInTime,
             CheckOutTime = room.CheckOutTime,
             TotalPrice = booking.TotalPrice,
             Status = booking.Status,
         };
 
-        return ServiceResultDto<CreateBookingDto>.SuccessResult(bookingResult,"Reserva criada.");
+        return ServiceResultDto<CreateBookingDto>.SuccessResult(bookingResult,"Reserva criada com sucesso.");
     }
-
-
 }
