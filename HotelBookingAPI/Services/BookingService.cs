@@ -175,7 +175,7 @@ public class BookingService: IBooking
     public async Task<ServiceResultDto<List<BookingDto>>> GetAllBookings()
     {
         var bookings = await _dbContext.Bookings!.Include(b => b.Traveler).ThenInclude(t => t!.User).Include(b => b.GuestBookings)!.ThenInclude(gb => gb.Guest).ToListAsync( );
-        var bookingDtos = bookings.Select(booking => new BookingDto
+        var bookingsDto = bookings.Select(booking => new BookingDto
         {
             Id = booking.Id,
             TravelerId = booking.TravelerId,
@@ -199,7 +199,41 @@ public class BookingService: IBooking
         }).ToList( );
 
 
-        var successResult = ServiceResultDto<List<BookingDto>>.SuccessResult(bookingDtos,"Quartos localizados.");
+        var successResult = ServiceResultDto<List<BookingDto>>.SuccessResult(bookingsDto,"Quartos localizados.");
         return successResult;
+    }
+
+    public async Task<ServiceResultDto<BookingDto>> GetBooking(int id)
+    {
+        var booking = await _dbContext.Bookings!.Where(b => b.Id == id).Include(b => b.Traveler).ThenInclude(t => t!.User).Include(b => b.GuestBookings)!.ThenInclude(gb => gb.Guest).FirstOrDefaultAsync();
+        if(booking is null)
+            return ServiceResultDto<BookingDto>.NullContent("Quarto não localizado.");
+
+        var bookingDto = new BookingDto
+        {
+            Id = booking.Id,
+            TravelerId = booking.TravelerId,
+            TravelerFullName = $"{booking.Traveler!.User.FirstName} {booking.Traveler.User.LastName}",
+            TravelerNationalId = booking.Traveler.User.NationalId,
+            Guests = booking.GuestBookings!.Select(gb => new GuestDto
+            {
+                FirstName = gb.Guest.FirstName,
+                LastName = gb.Guest.LastName,
+                RegistrationId = gb.Guest.RegistrationId,
+                BirthDate = gb.Guest.BirthDate,
+                HasSpecialNeeds = gb.Guest.HasSpecialNeeds,
+                SpecialNeedsDetails = gb.Guest.SpecialNeedsDetails,
+                DietaryPreferences = gb.Guest.DietaryPreferences,
+            }).ToList( ),
+            RoomId = booking.RoomId,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status
+        };
+
+        var successReult = ServiceResultDto<BookingDto>.SuccessResult(bookingDto, "Quarto localizado." );
+
+        return successReult;
     }
 }
