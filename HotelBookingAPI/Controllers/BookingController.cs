@@ -51,4 +51,21 @@ public class BookingController: ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("{id}")]
+    [Authorize(Roles = "Admin, Employee")]
+    public async Task<ActionResult<ServiceResultDto<BookingDto>>> GetBooking(int id)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
+            return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
+
+        var result = await _bookingService.GetBooking(id);
+        if(!result.Success) 
+            return NotFound();
+
+        //var successResult = ServiceResultDto<BookingDto>.SuccessResult(result, "Quarto localizado.")
+
+        return Ok(result);
+    }
 }
