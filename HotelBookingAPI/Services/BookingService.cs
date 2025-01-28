@@ -236,4 +236,21 @@ public class BookingService: IBooking
 
         return successReult;
     }
+
+    public async Task<ServiceResultDto<string>> UpdateBookingStatus(int id, string userId,BookingStatusDto bookingStatus)
+    {
+        var booking = await _dbContext.Bookings!.FirstOrDefaultAsync(b => b.Id == id);
+        if(booking is null)
+            return ServiceResultDto<string>.NullContent("Quarto não localizado.");
+
+        booking.Status = bookingStatus.Status;
+        booking.EditedAt = DateTime.Now;
+        booking.EditedBy = userId;
+        await _dbContext.SaveChangesAsync( );
+
+        var successResult = ServiceResultDto<string>.SuccessResult("O status da reserva foi atualizado com sucesso.", "Status atualizado.");
+
+        return successResult;
+
+    }
 }
