@@ -1,4 +1,5 @@
 ﻿using HotelBookingAPI.Dtos;
+using HotelBookingAPI.Enums;
 using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +17,7 @@ public class BookingController: ControllerBase
     private readonly IBooking _bookingService;
     private readonly IUserVerifier _userVerifier;
 
-    public BookingController(AppDbContext dbContext, IBooking bookingService, IUserVerifier userVerifier)
+    public BookingController(AppDbContext dbContext,IBooking bookingService,IUserVerifier userVerifier)
     {
         _dbContext = dbContext;
         _bookingService = bookingService;
@@ -45,9 +46,9 @@ public class BookingController: ControllerBase
         if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var result = await _bookingService.GetAllBookings();
+        var result = await _bookingService.GetAllBookings( );
         if(!result.Success)
-            return NotFound();
+            return NotFound( );
 
         return Ok(result);
     }
@@ -61,24 +62,39 @@ public class BookingController: ControllerBase
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
         var result = await _bookingService.GetBooking(id);
-        if(!result.Success) 
-            return NotFound();
+        if(!result.Success)
+            return NotFound( );
 
         return Ok(result);
     }
 
     [HttpPatch("{id}")]
     [Authorize(Roles = "Admin, Employee")]
-    public async Task<ActionResult<ServiceResultDto<string>>> UpdateBookingStatus(int id, [FromBody]BookingStatusDto bookingStatus)
+    public async Task<ActionResult<ServiceResultDto<string>>> UpdateBookingStatus(int id,[FromBody] BookingStatus bookingStatus)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
             return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
 
-        var updateStatus = await _bookingService.UpdateBookingStatus(id, currentUserId!, bookingStatus);
+        var updateStatus = await _bookingService.UpdateBookingStatus(id,currentUserId!,bookingStatus);
         if(!updateStatus.Success)
             return BadRequest( );
 
         return Ok(updateStatus);
+    }
+
+    [HttpGet("{bookingStatus:alpha}")]
+    [Authorize(Roles = "Admin, Employee")]
+    public async Task<ActionResult<ServiceResultDto<List<BookingDto>>>> GetBookingByStatus(BookingStatus bookingStatus)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
+            return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
+
+        var bookingsByStatus = await _bookingService.GetBookingsByStatus(bookingStatus);
+        if(!bookingsByStatus.Success)
+            return BadRequest(ServiceResultDto<List<BookingDto>>.Fail(bookingsByStatus.Message));
+
+        return Ok(bookingsByStatus);
     }
 }
