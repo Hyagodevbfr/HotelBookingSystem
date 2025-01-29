@@ -237,13 +237,45 @@ public class BookingService: IBooking
         return successReult;
     }
 
-    public async Task<ServiceResultDto<string>> UpdateBookingStatus(int id, string userId,BookingStatusDto bookingStatus)
+    public async Task<ServiceResultDto<List<BookingDto>>> GetBookingsByStatus(BookingStatus bookingStatus)
+    {
+        var bookings = await _dbContext.Bookings!.Where(b => b.Status == bookingStatus).Include(b => b.Traveler).ThenInclude(t => t!.User).Include(b => b.GuestBookings)!.ThenInclude(gb => gb.Guest).ToListAsync( );
+        var bookingsDto = bookings.Select(booking => new BookingDto
+        {
+            Id = booking.Id,
+            TravelerId = booking.TravelerId,
+            TravelerFullName = $"{booking.Traveler!.User.FirstName} {booking.Traveler.User.LastName}",
+            TravelerNationalId = booking.Traveler.User.NationalId,
+            Guests = booking.GuestBookings!.Select(gb => new GuestDto
+            {
+                FirstName = gb.Guest.FirstName,
+                LastName = gb.Guest.LastName,
+                RegistrationId = gb.Guest.RegistrationId,
+                BirthDate = gb.Guest.BirthDate,
+                HasSpecialNeeds = gb.Guest.HasSpecialNeeds,
+                SpecialNeedsDetails = gb.Guest.SpecialNeedsDetails,
+                DietaryPreferences = gb.Guest.DietaryPreferences,
+            }).ToList( ),
+            RoomId = booking.RoomId,
+            CheckInDate = booking.CheckInDate,
+            CheckOutDate = booking.CheckOutDate,
+            TotalPrice = booking.TotalPrice,
+            Status = booking.Status
+        }).ToList( );
+        if(!bookingsDto.Any())
+            return ServiceResultDto<List<BookingDto>>.NullContent($"Não há quartos com o status {bookingStatus}");
+
+        var successResult = ServiceResultDto<List<BookingDto>>.SuccessResult(bookingsDto,"Quartos localizados.");
+        return successResult;
+    }
+
+    public async Task<ServiceResultDto<string>> UpdateBookingStatus(int id, string userId,BookingStatus bookingStatus)
     {
         var booking = await _dbContext.Bookings!.FirstOrDefaultAsync(b => b.Id == id);
         if(booking is null)
             return ServiceResultDto<string>.NullContent("Quarto não localizado.");
 
-        booking.Status = bookingStatus.Status;
+        booking.Status = bookingStatus;
         booking.EditedAt = DateTime.Now;
         booking.EditedBy = userId;
         await _dbContext.SaveChangesAsync( );
