@@ -207,7 +207,7 @@ public class BookingService: IBooking
     {
         var booking = await _dbContext.Bookings!.Where(b => b.Id == id).Include(b => b.Traveler).ThenInclude(t => t!.User).Include(b => b.GuestBookings)!.ThenInclude(gb => gb.Guest).FirstOrDefaultAsync();
         if(booking is null)
-            return ServiceResultDto<BookingDto>.NullContent("Quarto não localizado.");
+            return ServiceResultDto<BookingDto>.NullContent("Reserva não localizada.");
 
         var bookingDto = new BookingDto
         {
@@ -232,7 +232,7 @@ public class BookingService: IBooking
             Status = booking.Status
         };
 
-        var successReult = ServiceResultDto<BookingDto>.SuccessResult(bookingDto, "Quarto localizado." );
+        var successReult = ServiceResultDto<BookingDto>.SuccessResult(bookingDto, "Reserva localizada." );
 
         return successReult;
     }
@@ -273,9 +273,21 @@ public class BookingService: IBooking
     {
         var booking = await _dbContext.Bookings!.FirstOrDefaultAsync(b => b.Id == id);
         if(booking is null)
-            return ServiceResultDto<string>.NullContent("Quarto não localizado.");
+            return ServiceResultDto<string>.NullContent("Reserva não localizada.");
 
         booking.Status = bookingStatus;
+        if(booking.Status == BookingStatus.Cancelled)
+        {
+            var room = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+            if(room is not null)
+            {
+                room.RoomsQuantity += 1;
+                booking.TotalPrice = Math.Abs(booking.TotalPrice) * - 1;
+                _dbContext.SaveChanges();
+            }
+            else
+                return ServiceResultDto<string>.NullContent("Quarto não localizado.");           
+        }
         booking.EditedAt = DateTime.Now;
         booking.EditedBy = userId;
         await _dbContext.SaveChangesAsync( );
@@ -283,6 +295,5 @@ public class BookingService: IBooking
         var successResult = ServiceResultDto<string>.SuccessResult("O status da reserva foi atualizado com sucesso.", "Status atualizado.");
 
         return successResult;
-
     }
 }
