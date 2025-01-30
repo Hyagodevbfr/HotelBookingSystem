@@ -70,7 +70,7 @@ public class BookingController: ControllerBase
 
     [HttpPatch("{id}")]
     [Authorize(Roles = "Admin, Employee")]
-    public async Task<ActionResult<ServiceResultDto<string>>> UpdateBookingStatus(int id,[FromBody] BookingStatus bookingStatus)
+    public async Task<ActionResult<ServiceResultDto<string>>> UpdateBookingStatus(int id, BookingStatus bookingStatus)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
         if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
