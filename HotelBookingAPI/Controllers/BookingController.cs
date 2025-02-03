@@ -39,7 +39,6 @@ public class BookingController: ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin, Employee")]
     public async Task<ActionResult<ServiceResultDto<List<BookingDto>>>> GetAllBookings()
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
@@ -54,7 +53,6 @@ public class BookingController: ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Admin, Employee")]
     public async Task<ActionResult<ServiceResultDto<BookingDto>>> GetBooking(int id)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
@@ -68,8 +66,21 @@ public class BookingController: ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("by-nationalID/{travelerNationalId}")]
+    public async Task<ActionResult<ServiceResultDto<BookingDto>>> GetBookingByTravelerNationalId(string travelerNationalId)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
+            return Unauthorized(ServiceResultDto<IEnumerable<UserDetailDto>>.Fail("Usuário não autênticado."));
+
+        var result = await _bookingService.GetBookingByTravelerNationalId(travelerNationalId);
+        if(!result.Success)
+            return NotFound(ServiceResultDto<BookingDto>.Fail(result.Message));
+
+        return Ok(result);
+    }
+
     [HttpPatch("{id}")]
-    [Authorize(Roles = "Admin, Employee")]
     public async Task<ActionResult<ServiceResultDto<string>>> UpdateBookingStatus(int id, BookingStatus bookingStatus)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
@@ -84,7 +95,6 @@ public class BookingController: ControllerBase
     }
 
     [HttpGet("{bookingStatus:alpha}")]
-    [Authorize(Roles = "Admin, Employee")]
     public async Task<ActionResult<ServiceResultDto<List<BookingDto>>>> GetBookingByStatus(BookingStatus bookingStatus)
     {
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
