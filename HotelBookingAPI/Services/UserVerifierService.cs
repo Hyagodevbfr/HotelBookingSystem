@@ -123,7 +123,7 @@ public class UserVerifierService: IUserVerifier
     public bool ValidateRg(string rg)
     {
         if(string.IsNullOrEmpty(rg)) return false;
-
+        rg = rg.Replace(".","").Replace("-","");
         rg = new string(rg.Where(char.IsDigit).ToArray( ));
 
         if(rg.Length < 7 || rg.Length > 9)
