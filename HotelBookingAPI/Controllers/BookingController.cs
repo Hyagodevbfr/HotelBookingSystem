@@ -107,4 +107,20 @@ public class BookingController: ControllerBase
 
         return Ok(bookingsByStatus);
     }
+
+    [HttpPatch("checkin/{bookingId}")]
+    public async Task<ActionResult<ServiceResultDto<string>>> Checkin(int bookingId, bool confirmAction = false)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)?.ToString( );
+        if(await _userVerifier.VerifyUserEmployeeOrAdminOrNull(currentUserId!) == false)
+            return Unauthorized(ServiceResultDto<string>.Fail("Usuário não autênticado."));
+
+        var result = await _bookingService.Checkin(bookingId, confirmAction);
+        if(!result.Success)
+            return Forbid(ServiceResultDto<string>.Fail("Erro ao realizar check-in.", result.Errors).Message);
+
+        return Ok(ServiceResultDto<string>.SuccessResult("Checkin realizado.",""));
+
+
+    }
 }
