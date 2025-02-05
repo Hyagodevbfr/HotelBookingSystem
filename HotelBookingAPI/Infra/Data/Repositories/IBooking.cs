@@ -11,5 +11,7 @@ public interface IBooking
     Task<ServiceResultDto<string>> UpdateBookingStatus(int id, string userId,BookingStatus bookingStatus);
     Task<ServiceResultDto<List<BookingDto>>> GetBookingsByStatus(BookingStatus bookingStatus);
     Task<ServiceResultDto<BookingDto>> GetBookingByTravelerNationalId(string nationalId);
+    Task<ServiceResultDto<string>> Checkin(int bookingId, bool confirmAction);
+
 
 }
