@@ -349,7 +349,7 @@ public class BookingService: IBooking
             return ServiceResultDto<string>.NullContent("Reserva não localizada.");
 
         if(booking.Status != BookingStatus.Confirmed)
-            return ServiceResultDto<string>.Fail("o status da reserva não permite realizar o checkin.");
+            return ServiceResultDto<string>.Fail("O status da reserva não permite realizar o check-in.");
 
         DateOnly concatenatedCheckInDate = DateOnly.FromDateTime(DateTime.Now);
         TimeOnly concatenatedCheckInTime = TimeOnly.FromDateTime(DateTime.Now);
@@ -364,22 +364,19 @@ public class BookingService: IBooking
             concatenatedCheckInTime.Millisecond
         );
         TimeSpan diff = booking.CheckInDate - ajustedCheckinDate;
-        if( diff.TotalHours > 3 )
+        if( diff.TotalHours < 3 )
         {
-            if(confirmAction == false)
-            {
-                double totalHours = diff.TotalHours;
-                int days = (int)(totalHours / 24);
-                int hours = (int)(totalHours % 24);
-                int minutes = diff.Minutes;
+            double totalHours = diff.TotalHours;
+            int days = (int)(totalHours / 24);
+            int hours = (int)(totalHours % 24);
+            int minutes = diff.Minutes;
 
-                string timeRemaining = days > 0
-                    ? $"{days} dias, {hours} horas e {minutes} minutos"
-                    : hours > 0
-                        ? $"{hours} horas e {minutes} minutos"
-                        : $"{minutes} minutos";
-                return ServiceResultDto<string>.Fail($"Check-in só permitido 3 horas antes do horário marcado. Aguarde mais {timeRemaining}.");
-            }
+            string timeRemaining = days > 0
+                ? $"{days} dias, {hours} horas e {minutes} minutos"
+                : hours > 0
+                    ? $"{hours} horas e {minutes} minutos"
+                    : $"{minutes} minutos";
+            //return ServiceResultDto<string>.Fail($"Check-out será realizado {timeRemaining} após o horário contratado.");
             
             booking.Status = BookingStatus.CheckinCompleted;
             _dbContext.SaveChanges();
@@ -394,6 +391,61 @@ public class BookingService: IBooking
         _dbContext.SaveChanges( );
 
         return ServiceResultDto<string>.SuccessResult("Checkin realizado com sucesso.","Checkin realizado.");
+    }
+
+    public async Task<ServiceResultDto<string>> Checkout(int bookingId,bool confirmAction)
+    {
+        var booking = await _dbContext.Bookings!.FirstOrDefaultAsync(b => b.Id == bookingId);
+        if(booking is null)
+            return ServiceResultDto<string>.NullContent("Reserva não localizada.");
+
+        var room = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == booking.RoomId);
+        if(room is null)
+            return ServiceResultDto<string>.NullContent("Quarto não localizado.");
+
+        if(booking.Status != BookingStatus.CheckinCompleted)
+            return ServiceResultDto<string>.Fail("O status da reserva não permite realizar o check-out.");
+
+        DateOnly concatenatedCheckInDate = DateOnly.FromDateTime(DateTime.Now);
+        TimeOnly concatenatedCheckInTime = TimeOnly.FromDateTime(DateTime.Now);
+
+        DateTime ajustedCheckinDate = new DateTime(
+            concatenatedCheckInDate.Year,
+            concatenatedCheckInDate.Month,
+            concatenatedCheckInDate.Day,
+            concatenatedCheckInTime.Hour,
+            concatenatedCheckInTime.Minute,
+            concatenatedCheckInTime.Second,
+            concatenatedCheckInTime.Millisecond
+        );
+        TimeSpan diff = booking.CheckInDate - ajustedCheckinDate;
+        if(diff.TotalHours > 3)
+        {
+            if(confirmAction == false)
+            {
+                double totalHours = diff.TotalHours;
+                int days = (int)(totalHours / 24);
+                int hours = (int)(totalHours % 24);
+                int minutes = diff.Minutes;
+
+                string timeRemaining = days > 0
+                    ? $"{days} dias, {hours} horas e {minutes} minutos"
+                    : hours > 0
+                        ? $"{hours} horas e {minutes} minutos"
+                        : $"{minutes} minutos";
+                return ServiceResultDto<string>.Fail($"Check-out ultrapassou {timeRemaining}.");
+            }
+
+            booking.Status = BookingStatus.CheckoutCompleted;
+            room.RoomsQuantity += 1;            
+            _dbContext.SaveChanges( );
+        }else if (booking.CheckOutDate >  ajustedCheckinDate || booking.CheckInDate < ajustedCheckinDate)
+            return ServiceResultDto<string>.Fail("O dia de hoje é anterior a data de check-out. Não foi possível realizar o check-out.");
+
+        booking.Status = BookingStatus.CheckoutCompleted;
+        room.RoomsQuantity += 1;
+        _dbContext.SaveChanges( );
+        return ServiceResultDto<string>.SuccessResult("Check-out realizado com sucesso.","Check-out realizado.");
     }
 }
 
