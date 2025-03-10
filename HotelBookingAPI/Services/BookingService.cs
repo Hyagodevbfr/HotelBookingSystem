@@ -1,27 +1,33 @@
-﻿using AutoMapper;
-using HotelBookingAPI.Dtos;
+﻿using HotelBookingAPI.Dtos;
 using HotelBookingAPI.Enums;
 using HotelBookingAPI.Infra.Data;
 using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
+using RabbitPublisher;
+using Shared;
+using static Shared.BookingSharedDto;
+
 
 namespace HotelBookingAPI.Services;
 
 public class BookingService: IBooking
 {
     private readonly AppDbContext _dbContext;
+    private readonly PublisherRabbitMq _rabbitPublisher;
 
-    public BookingService(AppDbContext dbContext)
+    public BookingService(AppDbContext dbContext, PublisherRabbitMq rabbitPublisher)
     {
         _dbContext = dbContext;
+        _rabbitPublisher = rabbitPublisher;
     }
     public async Task<ServiceResultDto<CreateBookingDto>> CreateBooking(BookingRequest bookingRequest)
     {
         var traveler = await _dbContext.Travelers!.FirstOrDefaultAsync(t => t.UserId == bookingRequest.TravelerId);
         if(traveler is null)
             return ServiceResultDto<CreateBookingDto>.Fail("Viajante não localizado.");
+
+        var user = await _dbContext.Users.FindAsync(bookingRequest.TravelerId);
 
         var room = await _dbContext.Rooms!.FirstOrDefaultAsync(r => r.Id == bookingRequest.RoomId);
         if(room is null || room.RoomsQuantity <= 0)
@@ -156,6 +162,22 @@ public class BookingService: IBooking
         }
 
         await _dbContext.SaveChangesAsync( );
+
+        var bookingToShared = new BookingShared
+        {
+            BookingId = booking.Id,
+            TravelerFullName = $"{user!.FirstName} {user.LastName}",
+            TravelerNationalId = user.NationalId,
+            TravelerEmail = user.Email!,
+            TypeRoom = booking.Room?.Type?.ToString( ) ?? "Falha ao recuperar tipo de quarto",
+            RoomName = booking.Room?.RoomName ?? "Falha ao recuperar nome do quarto",
+            CheckIn = booking.CheckInDate.ToString( ) ?? "Falha ao recuperar data de check-in",
+            CheckOut = booking.CheckOutDate.ToString( ) ?? "Falha ao recuperar data de check-out",
+            Status = booking.Status.ToString( ) ?? "Falha ao recuperar status da reserva",
+            TotalPrice = $"R${(Decimal)booking.TotalPrice}"
+        };
+
+        await _rabbitPublisher.SendBookingAsync(bookingToShared);
 
         var bookingResult = new CreateBookingDto
         {
@@ -376,16 +398,14 @@ public class BookingService: IBooking
                 : hours > 0
                     ? $"{hours} horas e {minutes} minutos"
                     : $"{minutes} minutos";
-            //return ServiceResultDto<string>.Fail($"Check-out será realizado {timeRemaining} após o horário contratado.");
-            
+                        
             booking.Status = BookingStatus.CheckinCompleted;
             _dbContext.SaveChanges();
         }
         else if(confirmAction == false && diff.TotalHours > 0)
         {
                 return ServiceResultDto<string>.Fail($"Tentativa de checkin antes de horario marcado sem confirmação. {diff}");
-        }
-       
+        }       
 
         booking.Status = BookingStatus.CheckinCompleted;
         _dbContext.SaveChanges( );
