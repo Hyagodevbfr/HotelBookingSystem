@@ -1,119 +1,67 @@
 ﻿using ConsumerApp;
-using HotelBookingAPI.Infra.Data;
+using ConsumerApp.Email_Templates;
 using HotelBookingAPI.Messenger.XmlHelpers;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Net;
 using System.Net.Mail;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Xsl;
 using static Shared.BookingSharedDto;
+using static Shared.QueueConfiguation;
 
 
-var factory = new ConnectionFactory { HostName = QueueConfig.HostName };
+var factory = new ConnectionFactory { HostName = HostName };
 var connection = await factory.CreateConnectionAsync( );
 var channel = await connection.CreateChannelAsync( );
 
-await channel.ExchangeDeclareAsync("booking_exchange",ExchangeType.Topic);
-await channel.QueueDeclareAsync(queue: QueueConfig.QueueName,durable: false,exclusive: false,autoDelete: false,arguments: null);
-await channel.QueueBindAsync("booking_queue","booking_exchange","booking.new");
+await channel.ExchangeDeclareAsync(ExchangeName,ExchangeType.Topic);
+
+await channel.QueueDeclareAsync(queue: QueueName,durable: false,exclusive: false,autoDelete: false,arguments: null);
+
+await channel.QueueBindAsync(QueueName, ExchangeName, NewBookingRouting);
+await channel.QueueBindAsync(QueueName, ExchangeName, StatusUpdateRouting);
 
 Console.WriteLine("[*] Waiting for messages.");
 
 var consumer = new AsyncEventingBasicConsumer(channel);
-
 consumer.ReceivedAsync += (model, ea) =>
 {
     var body = ea.Body.ToArray( );
     var message = Encoding.UTF8.GetString(body);
-
     var booking = JsonSerializer.Deserialize<BookingShared>(message)!;
 
-    Console.WriteLine($"[x] Processando reserva.");
+    string emailSubject;
+    string emailContent;
 
-    var bookingProcessed = GenerateBookingHtml(booking!);
+    if(ea.RoutingKey == NewBookingRouting)
+    {
+        emailSubject = $"Reserva {booking.BookingId} criada com sucesso!";
+        emailContent = GenerateBookingHtml(booking!);
+    }
+    else if(ea.RoutingKey == StatusUpdateRouting)
+    {
+        emailSubject = $"Status atualizado - Voucher: {booking.BookingId}";
+        emailContent = GenerateStatusUpdateHtml(booking!);
+    }
+    else
+    {
+        emailSubject = "Assunto desconhecido";
+        emailContent = "Não foi possível gerar o conteúdo do email.";
+    }
 
-    SendEmail($"{booking.TravelerEmail}",$"Reserva {booking.BookingId} criada com sucesso!", bookingProcessed);
+    SendEmail(booking.TravelerEmail,emailSubject,emailContent);
 
     Console.WriteLine($"Email enviado para {booking.TravelerEmail}");
 
     return Task.CompletedTask;
 };
-await channel.BasicConsumeAsync(queue: QueueConfig.QueueName, autoAck: true, consumer: consumer);
+await channel.BasicConsumeAsync(queue: QueueName, autoAck: true, consumer: consumer);
 
 Console.WriteLine("press enter to exit");
 Console.ReadLine( );
-
-static string GenerateXslt()
-{
-    return @"<?xml version=""1.0"" encoding=""UTF-8""?>
-<xsl:stylesheet version=""1.0"" xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
-    <xsl:template match=""/"">
-        <html>
-            <head>
-                <title>Reserva XML</title>
-                <style>
-                    body {
-                        margin: 0;
-                        padding: 0;
-                        -webkit-text-size-adjust: 100%;
-                        -ms-text-size-adjust: 100%;
-                        font-family: Arial, sans-serif;
-                        background-color: #f4f4f4;
-                        text-align: center;
-                        }
-                    .content {
-                        width: 50%;
-                        -webkit-text-size-adjust: 100%;
-                        -ms-text-size-adjust: 100%;
-                        background-color: #f9f9f9;
-                        padding: 20px;
-                        border: 1px solid #ddd;
-                        border-radius: 10px;
-                        text-align: left
-                    }
-                    .title {
-                        font-size: 20px;
-                        font-weight: bold;
-                        margin-bottom: 10px;
-                        color: #007BFF;
-                    }
-                    .item {
-                        font-size: 16px;
-                        margin: 8px 0;
-                        padding: 10px;
-                        border-bottom: 1px solid #ddd;
-                    }
-                    .footer {
-                        margin-top: 20px;
-                        font-style: italic;
-                        color: #555;
-                    }   
-                </style>
-            </head>
-            <body>                
-                <div class=""content"">
-                    <div class=""title"">Detalhes da Reserva - <xsl:value-of select=""BookingShared/BookingId""/></div>
-                
-                    <div class=""item""><b>Voucher: </b> <xsl:value-of select=""BookingShared/BookingId""/></div>
-                    <div class=""item""><b>Nome do Viajante: </b> <xsl:value-of select=""BookingShared/TravelerFullName""/></div>
-                    <div class=""item""><b>Nome do Quarto: </b> <xsl:value-of select=""BookingShared/RoomName""/></div>
-                    <div class=""item""><b>Tipo do Quarto: </b> <xsl:value-of select=""BookingShared/TypeRoom""/></div>
-                    <div class=""item""><b>Check-in: </b> <xsl:value-of select=""BookingShared/CheckIn""/></div>
-                    <div class=""item""><b>Check-out: </b> <xsl:value-of select=""BookingShared/CheckOut""/></div>
-                    <div class=""item""><b>Total: </b> R$ <xsl:value-of select=""BookingShared/TotalPrice""/></div>
-                    <div class=""item""><b>Status: </b> <xsl:value-of select=""BookingShared/Status""/></div>
-                </div>
-                <p class=""footer"">Se possível, por favor, imprima este e-mail para referência futura.</p>
-            </body>
-            </html>
-    </xsl:template>
-</xsl:stylesheet>
-";
-}
 static string TransformXmlToHtml(string xmlContent,string xsltContent)
 {
     var xmlDocument = new XmlDocument( );
@@ -131,8 +79,18 @@ static string TransformXmlToHtml(string xmlContent,string xsltContent)
 }
 static string GenerateBookingHtml(BookingShared booking)
 {
-    string xml = XmlHelper.GenerateXml(booking); 
-    string xslt = GenerateXslt( );
+    var generate = new NewBooking( );
+    string xml = XmlHelper.GenerateXml(booking);
+    string xslt = generate.NewBookingXlst();
+
+    return TransformXmlToHtml(xml,xslt);
+}
+
+static string GenerateStatusUpdateHtml(BookingShared booking)
+{
+    var generate = new StatusUpdate( );
+    string xml = XmlHelper.GenerateXml(booking);
+    string xslt = generate.GenerateXsltStatusUpdate();
 
     return TransformXmlToHtml(xml,xslt);
 }
