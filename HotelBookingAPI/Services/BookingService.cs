@@ -334,9 +334,11 @@ public class BookingService: IBooking
 
     public async Task<ServiceResultDto<string>> UpdateBookingStatus(int id,string userId,BookingStatus bookingStatus)
     {
-        var booking = await _dbContext.Bookings!.FirstOrDefaultAsync(b => b.Id == id);
+        var booking = await _dbContext.Bookings!.Include(b => b.Room).FirstOrDefaultAsync(b => b.Id == id);
         if(booking is null)
             return ServiceResultDto<string>.NullContent("Reserva não localizada.");
+
+        var user = await _dbContext.Users.FindAsync(booking.TravelerId);
 
         booking.Status = bookingStatus;
         if(booking.Status == BookingStatus.Cancelled)
@@ -358,6 +360,22 @@ public class BookingService: IBooking
         booking.EditedAt = DateTime.Now;
         booking.EditedBy = userId;
         await _dbContext.SaveChangesAsync( );
+
+        var bookingToShared = new BookingShared
+        {
+            BookingId = booking.Id,
+            TravelerFullName = $"{user!.FirstName} {user.LastName}",
+            TravelerNationalId = user.NationalId,
+            TravelerEmail = user.Email!,
+            TypeRoom = booking.Room?.Type?.ToString( ) ?? "Falha ao recuperar tipo de quarto",
+            RoomName = booking.Room?.RoomName ?? "Falha ao recuperar nome do quarto",
+            CheckIn = booking.CheckInDate.ToString( ) ?? "Falha ao recuperar data de check-in",
+            CheckOut = booking.CheckOutDate.ToString( ) ?? "Falha ao recuperar data de check-out",
+            Status = booking.Status.ToString( ) ?? "Falha ao recuperar status da reserva",
+            TotalPrice = $"R${(Decimal)booking.TotalPrice}"
+        };
+
+        await _rabbitPublisher.StatusUpdate(bookingToShared);
 
         var successResult = ServiceResultDto<string>.SuccessResult("O status da reserva foi atualizado com sucesso.","Status atualizado.");
 
