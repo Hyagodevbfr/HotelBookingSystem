@@ -11,7 +11,6 @@ namespace HotelBookingAPI.Dtos
         public string TravelerId { get; set; } = string.Empty;
         public string TravelerFullName { get; set; } = string.Empty;
         public string TravelerNationalId { get; set; } = string.Empty;
-        public Traveler? Traveler { get; set; }
         public List<GuestDto>? Guests { get; set; }
         public int RoomId { get; set; }
         public Room Room { get; set; } = null!;
