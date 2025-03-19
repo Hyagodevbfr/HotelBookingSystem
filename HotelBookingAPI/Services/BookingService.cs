@@ -182,10 +182,21 @@ public class BookingService: IBooking
         var bookingResult = new CreateBookingDto
         {
             TravelerId = bookingRequest.TravelerId,
-            GuestBookings = booking.GuestBookings,
+            GuestBookings = booking.GuestBookings!.Select(gb => new GuestBookingDto
+            {
+                BookingId = gb.BookingId,
+                GuestId = gb.GuestId,
+                FirstName = gb.Guest.FirstName,
+                LastName = gb.Guest.LastName,
+                RegistrationId = gb.Guest.RegistrationId,
+                BirthDate = gb.Guest.BirthDate.ToString("dd-MM-yyyy"),
+                HasSpecialNeeds = gb.Guest.HasSpecialNeeds,
+                SpecialNeedsDetails = gb.Guest.SpecialNeedsDetails,
+                DietaryPreferences = gb.Guest.DietaryPreferences,
+            }).ToList( ),
             RoomId = booking.RoomId,
-            CheckInDate = bookingRequest.CheckInDate,
-            CheckOutDate = bookingRequest.CheckOutDate,
+            CheckInDate = bookingRequest.CheckInDate.ToString("dd-MM-yyyy"),
+            CheckOutDate = bookingRequest.CheckOutDate.ToString("dd-MM-yyyy"),
             CheckInTime = room.CheckInTime,
             CheckOutTime = room.CheckOutTime,
             TotalPrice = booking.TotalPrice,
