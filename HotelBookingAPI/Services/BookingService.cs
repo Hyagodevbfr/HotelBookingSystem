@@ -5,7 +5,6 @@ using HotelBookingAPI.Infra.Data.Repositories;
 using HotelBookingAPI.Models;
 using Microsoft.EntityFrameworkCore;
 using RabbitPublisher;
-using Shared;
 using static Shared.BookingSharedDto;
 
 
@@ -15,11 +14,13 @@ public class BookingService: IBooking
 {
     private readonly AppDbContext _dbContext;
     private readonly PublisherRabbitMq _rabbitPublisher;
+    private readonly ICheckBooking _checkBooking;
 
-    public BookingService(AppDbContext dbContext, PublisherRabbitMq rabbitPublisher)
+    public BookingService(AppDbContext dbContext,PublisherRabbitMq rabbitPublisher,ICheckBooking checkBooking)
     {
         _dbContext = dbContext;
         _rabbitPublisher = rabbitPublisher;
+        _checkBooking = checkBooking;
     }
     public async Task<ServiceResultDto<CreateBookingDto>> CreateBooking(BookingRequest bookingRequest)
     {
@@ -90,6 +91,12 @@ public class BookingService: IBooking
             CreatedBy = bookingRequest.TravelerId,
             EditedBy = bookingRequest.TravelerId,
         };
+
+        var checkDuplicatedBooking = await _checkBooking.CheckDuplicateBooking(booking);
+        if (checkDuplicatedBooking != null)
+        {
+            return ServiceResultDto<CreateBookingDto>.Fail(checkDuplicatedBooking.Message);
+        }
 
         _dbContext.Bookings!.Add(booking);
         if(room.RoomsQuantity < 0)
