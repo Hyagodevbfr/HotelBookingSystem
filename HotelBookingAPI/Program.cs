@@ -34,6 +34,7 @@ builder.Services.AddScoped<IRoom, RoomService>();
 builder.Services.AddScoped<ITraveler, TravelerService>();
 builder.Services.AddScoped<ITravelerVerifier, TravelerVerifierService>();
 builder.Services.AddScoped<IBooking, BookingService>();
+builder.Services.AddScoped<ICheckBooking, CheckBookingService>();
 
 builder.Services.AddScoped<IBooking, BookingService>();
 
